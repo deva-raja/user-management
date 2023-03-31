@@ -1,37 +1,36 @@
 // ** React Imports
-import { useState, ReactNode, MouseEvent } from 'react'
+import { MouseEvent, ReactNode, useState } from 'react'
 
 // ** Next Imports
 import Link from 'next/link'
 
 // ** MUI Components
 import Alert from '@mui/material/Alert'
-import Button from '@mui/material/Button'
-import Divider from '@mui/material/Divider'
-import Checkbox from '@mui/material/Checkbox'
-import TextField from '@mui/material/TextField'
-import Typography from '@mui/material/Typography'
-import InputLabel from '@mui/material/InputLabel'
-import IconButton from '@mui/material/IconButton'
 import Box, { BoxProps } from '@mui/material/Box'
+import Button from '@mui/material/Button'
+import Checkbox from '@mui/material/Checkbox'
+import Divider from '@mui/material/Divider'
 import FormControl from '@mui/material/FormControl'
-import useMediaQuery from '@mui/material/useMediaQuery'
+import MuiFormControlLabel, { FormControlLabelProps } from '@mui/material/FormControlLabel'
+import FormHelperText from '@mui/material/FormHelperText'
+import IconButton from '@mui/material/IconButton'
+import InputAdornment from '@mui/material/InputAdornment'
+import InputLabel from '@mui/material/InputLabel'
 import OutlinedInput from '@mui/material/OutlinedInput'
 import { styled, useTheme } from '@mui/material/styles'
-import FormHelperText from '@mui/material/FormHelperText'
-import InputAdornment from '@mui/material/InputAdornment'
-import MuiFormControlLabel, { FormControlLabelProps } from '@mui/material/FormControlLabel'
+import TextField from '@mui/material/TextField'
+import Typography from '@mui/material/Typography'
+import useMediaQuery from '@mui/material/useMediaQuery'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
 
 // ** Third Party Imports
-import * as yup from 'yup'
-import { useForm, Controller } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
+import { Controller, useForm } from 'react-hook-form'
+import * as yup from 'yup'
 
 // ** Hooks
-import { useAuth } from 'src/hooks/useAuth'
 import useBgColor from 'src/@core/hooks/useBgColor'
 import { useSettings } from 'src/@core/hooks/useSettings'
 
@@ -42,7 +41,15 @@ import themeConfig from 'src/configs/themeConfig'
 import BlankLayout from 'src/@core/layouts/BlankLayout'
 
 // ** Demo Imports
+import bcrypt from 'bcryptjs'
+import Router from 'next/router'
+import ButtonSpinner from 'src/@core/components/spinner/ButtonSpinner'
+import useCustomToast from 'src/@core/components/toast'
+import { errorMessageParser } from 'src/@core/utils/error'
+import supabase from 'src/configs/supabase'
+import useLocalStorage from 'src/hooks/useLocalStorage'
 import FooterIllustrationsV2 from 'src/views/pages/auth/FooterIllustrationsV2'
+import { useAuth } from 'src/hooks/useAuth'
 
 // ** Styled Components
 const LoginIllustration = styled('img')(({ theme }) => ({
@@ -104,7 +111,6 @@ const LoginPage = () => {
   const [showPassword, setShowPassword] = useState<boolean>(false)
 
   // ** Hooks
-  const auth = useAuth()
   const theme = useTheme()
   const bgColors = useBgColor()
   const { settings } = useSettings()
@@ -115,7 +121,6 @@ const LoginPage = () => {
 
   const {
     control,
-    setError,
     handleSubmit,
     formState: { errors }
   } = useForm({
@@ -124,14 +129,39 @@ const LoginPage = () => {
     resolver: yupResolver(schema)
   })
 
-  const onSubmit = (data: FormData) => {
-    const { email, password } = data
-    auth.login({ email, password, rememberMe }, () => {
-      setError('email', {
-        type: 'manual',
-        message: 'Email or Password is invalid'
-      })
-    })
+  const toast = useCustomToast()
+  const [loading, setLoading] = useState(false)
+  const [user, setUser] = useLocalStorage('user', undefined)
+  const auth = useAuth()
+
+  const onSubmit = async (values: FormData) => {
+    setLoading(true)
+
+    const { data, error } = await supabase.from('users').select().eq('email', values.email)
+
+    const onError = (errMessage: string) => {
+      const errMsg = errMessage
+      setLoading(false)
+      toast.error(errMsg)
+    }
+
+    if (error) {
+      const errMsg = errorMessageParser(error)
+      onError(errMsg)
+    } else if (data && Boolean(data.length)) {
+      const isCorrectPassword = bcrypt.compareSync(values.password, data?.[0]?.password)
+
+      if (isCorrectPassword) {
+        toast.success('login successfull')
+        setUser(user)
+        auth.login(values)
+        Router.push('/home')
+      } else {
+        onError('invalid credentials')
+      }
+    } else {
+      onError('no registered user found')
+    }
   }
 
   const imageSource = skin === 'bordered' ? 'auth-v2-login-illustration-bordered' : 'auth-v2-login-illustration'
@@ -282,8 +312,9 @@ const LoginPage = () => {
                 />
                 <LinkStyled href='/forgot-password'>Forgot Password?</LinkStyled>
               </Box>
-              <Button fullWidth size='large' type='submit' variant='contained' sx={{ mb: 4 }}>
+              <Button disabled={loading} fullWidth size='large' type='submit' variant='contained' sx={{ mb: 4 }}>
                 Login
+                {loading && <ButtonSpinner />}
               </Button>
               <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', justifyContent: 'center' }}>
                 <Typography sx={{ color: 'text.secondary', mr: 2 }}>New on our platform?</Typography>

@@ -38,6 +38,12 @@ import { useSettings } from 'src/@core/hooks/useSettings'
 
 // ** Demo Imports
 import FooterIllustrationsV2 from 'src/views/pages/auth/FooterIllustrationsV2'
+import supabase from 'src/configs/supabase'
+import { useRouter } from 'next/router'
+import { errorMessageParser } from 'src/@core/utils/error'
+import useCustomToast from 'src/@core/components/toast'
+import ButtonSpinner from 'src/@core/components/spinner/ButtonSpinner'
+import bcrypt from 'bcryptjs'
 
 const defaultValues = {
   email: '',
@@ -124,22 +130,35 @@ const Register = () => {
     resolver: yupResolver(schema)
   })
 
-  const onSubmit = (data: FormData) => {
+  const router = useRouter()
+  const toast = useCustomToast()
+  const [loading, setLoading] = useState(false)
+  const onSubmit = async (data: FormData) => {
+    setLoading(true)
+
     const { email, username, password } = data
-    register({ email, username, password }, err => {
-      if (err.email) {
-        setError('email', {
-          type: 'manual',
-          message: err.email
-        })
-      }
-      if (err.username) {
-        setError('username', {
-          type: 'manual',
-          message: err.username
-        })
-      }
-    })
+
+    const salt = bcrypt.genSaltSync(10)
+    const passwordHash = bcrypt.hashSync(password, salt)
+
+    const values = {
+      email,
+      name: username,
+      password: passwordHash,
+      role: 2
+    }
+
+    const { data: response, error } = await supabase.from('users').insert(values).select()
+    if (response) {
+      console.log(response, 'the data')
+      router.push('/login')
+    }
+
+    if (error) {
+      setLoading(false)
+      const errMsg = errorMessageParser(error)
+      toast.error(errMsg)
+    }
   }
 
   const imageSource = skin === 'bordered' ? 'auth-v2-register-illustration-bordered' : 'auth-v2-register-illustration'
@@ -328,8 +347,9 @@ const Register = () => {
                   <FormHelperText sx={{ mt: 0, color: 'error.main' }}>{errors.terms.message}</FormHelperText>
                 )}
               </FormControl>
-              <Button fullWidth size='large' type='submit' variant='contained' sx={{ mb: 4 }}>
+              <Button disabled={loading} fullWidth size='large' type='submit' variant='contained' sx={{ mb: 4 }}>
                 Sign up
+                {loading && <ButtonSpinner />}
               </Button>
               <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', justifyContent: 'center' }}>
                 <Typography sx={{ color: 'text.secondary', mr: 2 }}>Already have an account?</Typography>
