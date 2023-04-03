@@ -46,10 +46,9 @@ import Router from 'next/router'
 import ButtonSpinner from 'src/@core/components/spinner/ButtonSpinner'
 import useCustomToast from 'src/@core/components/toast'
 import { errorMessageParser } from 'src/@core/utils/error'
-import supabase from 'src/configs/supabase'
-import useLocalStorage from 'src/hooks/useLocalStorage'
 import FooterIllustrationsV2 from 'src/views/pages/auth/FooterIllustrationsV2'
 import { useAuth } from 'src/hooks/useAuth'
+import { usePostGstRates } from 'src/services/auth'
 
 // ** Styled Components
 const LoginIllustration = styled('img')(({ theme }) => ({
@@ -130,38 +129,40 @@ const LoginPage = () => {
   })
 
   const toast = useCustomToast()
-  const [loading, setLoading] = useState(false)
-  const [user, setUser] = useLocalStorage('user', undefined)
   const auth = useAuth()
 
-  const onSubmit = async (values: FormData) => {
-    setLoading(true)
+  const postMutation = usePostGstRates()
 
-    const { data, error } = await supabase.from('users').select().eq('email', values.email)
+  const onSubmit = async (values: FormData) => {
+    const data = {
+      email: values.email
+    }
 
     const onError = (errMessage: string) => {
       const errMsg = errMessage
-      setLoading(false)
       toast.error(errMsg)
     }
 
-    if (error) {
-      const errMsg = errorMessageParser(error)
-      onError(errMsg)
-    } else if (data && Boolean(data.length)) {
-      const isCorrectPassword = bcrypt.compareSync(values.password, data?.[0]?.password)
+    postMutation.mutate(data, {
+      onSuccess: data => {
+        const user:any = data?.[0]
+        const isCorrectPassword = bcrypt.compareSync(values.password, user?.password)
 
-      if (isCorrectPassword) {
-        toast.success('login successfull')
-        setUser(user)
-        auth.login(values)
-        Router.push('/home')
-      } else {
-        onError('invalid credentials')
+        if (isCorrectPassword) {
+          toast.success('login successfull')
+          localStorage.setItem('id', user?.id)
+          localStorage.setItem('role', user?.role)
+          auth.login(values)
+          Router.push('/home')
+        } else {
+          onError('invalid credentials')
+        }
+      },
+      onError: error => {
+        const errMsg = errorMessageParser(error)
+        onError(errMsg)
       }
-    } else {
-      onError('no registered user found')
-    }
+    })
   }
 
   const imageSource = skin === 'bordered' ? 'auth-v2-login-illustration-bordered' : 'auth-v2-login-illustration'
@@ -312,9 +313,16 @@ const LoginPage = () => {
                 />
                 <LinkStyled href='/forgot-password'>Forgot Password?</LinkStyled>
               </Box>
-              <Button disabled={loading} fullWidth size='large' type='submit' variant='contained' sx={{ mb: 4 }}>
+              <Button
+                disabled={postMutation.isLoading}
+                fullWidth
+                size='large'
+                type='submit'
+                variant='contained'
+                sx={{ mb: 4 }}
+              >
                 Login
-                {loading && <ButtonSpinner />}
+                {postMutation.isLoading && <ButtonSpinner />}
               </Button>
               <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', justifyContent: 'center' }}>
                 <Typography sx={{ color: 'text.secondary', mr: 2 }}>New on our platform?</Typography>

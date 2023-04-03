@@ -44,6 +44,7 @@ import { errorMessageParser } from 'src/@core/utils/error'
 import useCustomToast from 'src/@core/components/toast'
 import ButtonSpinner from 'src/@core/components/spinner/ButtonSpinner'
 import bcrypt from 'bcryptjs'
+import { userRoles } from 'src/configs/general'
 
 const defaultValues = {
   email: '',
@@ -106,7 +107,6 @@ const Register = () => {
 
   // ** Hooks
   const theme = useTheme()
-  const { register } = useAuth()
   const { settings } = useSettings()
   const hidden = useMediaQuery(theme.breakpoints.down('md'))
 
@@ -121,7 +121,6 @@ const Register = () => {
 
   const {
     control,
-    setError,
     handleSubmit,
     formState: { errors }
   } = useForm({
@@ -145,7 +144,7 @@ const Register = () => {
       email,
       name: username,
       password: passwordHash,
-      role: 2
+      role: userRoles['client']
     }
 
     const { data: response, error } = await supabase.from('users').insert(values).select()
