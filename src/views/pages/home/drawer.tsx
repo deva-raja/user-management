@@ -26,6 +26,9 @@ import { useQueryClient } from '@tanstack/react-query'
 import useCustomToast from '@components/toast'
 import { TTasksParams, usePostTasks, usePatchTasks, TTasks } from '@services/tasks'
 import { dbRoutes } from 'src/configs/db'
+import { InputLabel, MenuItem, Select } from '@mui/material'
+import { useGetUsers } from '@services/auth'
+import { userRoles } from 'src/configs/general'
 
 interface SidebarAddUserType {
   open: boolean
@@ -41,12 +44,13 @@ const Header = styled(Box)<BoxProps>(({ theme }) => ({
 }))
 
 const schema = yup.object().shape({
-  userId: yup.number().required(),
+  user_id: yup.string().required(),
   task: yup.string().required()
 })
 
 const defaultValues = {
-  task: ''
+  task: '',
+  user_id: 0
 }
 
 const SidebarAddGstRate = (props: SidebarAddUserType) => {
@@ -56,6 +60,7 @@ const SidebarAddGstRate = (props: SidebarAddUserType) => {
   const patch = usePatchTasks()
   const toast = useCustomToast()
   const queryClient = useQueryClient()
+  const users = useGetUsers()
 
   // ** Hooks
   const {
@@ -72,7 +77,9 @@ const SidebarAddGstRate = (props: SidebarAddUserType) => {
 
   useEffect(() => {
     if (selectedItem) {
-      setValue('userId', selectedItem.userId)
+      console.log(selectedItem, 'the jam')
+
+      setValue('user_id', selectedItem.users.id)
       setValue('task', selectedItem.task)
     }
   }, [selectedItem, setValue])
@@ -94,12 +101,18 @@ const SidebarAddGstRate = (props: SidebarAddUserType) => {
     if (selectedItem) {
       const data = {
         ...values,
+        user_id: Number(values.user_id),
         id: selectedItem.id
       }
 
       patch.mutate(data, finalActions)
     } else {
-      post.mutate(values, finalActions)
+      const data = {
+        ...values,
+        user_id: Number(values.user_id)
+      }
+
+      post.mutate(data, finalActions)
     }
   }
 
@@ -131,20 +144,33 @@ const SidebarAddGstRate = (props: SidebarAddUserType) => {
         <form onSubmit={handleSubmit(onSubmit)}>
           <FormControl fullWidth sx={{ mb: 4 }}>
             <Controller
-              name='task'
+              name='user_id'
               control={control}
               rules={{ required: true }}
               render={({ field: { value, onChange } }) => (
-                <TextField
-                  value={value}
-                  label='Rate in percentage'
-                  onChange={onChange}
-                  placeholder='Enter gst rate'
-                  error={Boolean(errors.userId)}
-                />
+                <>
+                  <InputLabel id='status-select-1'>Assign To</InputLabel>
+                  <Select
+                    id='select-status-1'
+                    label='Select Account Status'
+                    labelId='status-select-1'
+                    inputProps={{ placeholder: 'Assign to' }}
+                    value={value}
+                    onChange={onChange}
+                  >
+                    <MenuItem value=''>Assign To</MenuItem>
+                    {users?.data
+                      ?.filter?.(user => user.role !== userRoles['super_admin'])
+                      ?.map(item => (
+                        <MenuItem key={item.id} value={item.id}>
+                          {item.name}
+                        </MenuItem>
+                      ))}
+                  </Select>
+                </>
               )}
             />
-            {errors.userId && <ErrorBox error={errors.userId} />}
+            {errors.user_id && <ErrorBox error={errors.user_id} />}
           </FormControl>
 
           <FormControl fullWidth sx={{ mb: 4 }}>
@@ -155,9 +181,9 @@ const SidebarAddGstRate = (props: SidebarAddUserType) => {
               render={({ field: { value, onChange } }) => (
                 <TextField
                   value={value}
-                  label='Description'
+                  label='Task'
                   onChange={onChange}
-                  placeholder='Enter description'
+                  placeholder='Enter task description'
                   error={Boolean(errors.task)}
                 />
               )}

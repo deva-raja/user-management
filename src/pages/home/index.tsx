@@ -14,6 +14,7 @@ import { useGetTasks, useDeleteTasks, TTasks } from 'src/services/tasks'
 
 import SidebarAddGstRate from 'src/views/pages/home/drawer'
 import DeleteConfirmModal from 'src/@core/components/modals/delete-confirm'
+import { dbRoutes } from 'src/configs/db'
 
 const Tasks = () => {
   const [pageSize, setPageSize] = useState<number>(10)
@@ -139,7 +140,7 @@ const Tasks = () => {
         <SidebarAddGstRate selectedItem={selectedItem} open={drawerOpen} toggle={toggleDrawer} />
 
         <DeleteConfirmModal
-          routeToInvalidate={'tasks'}
+          routeToInvalidate={dbRoutes['tasks']}
           open={openConfirmation}
           remove={remove}
           setOpen={setOpenConfirmation}

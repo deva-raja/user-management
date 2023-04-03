@@ -4,7 +4,7 @@ import supabase from 'src/configs/supabase'
 
 export type TTasksParams = {
   id?: string
-  userId: number
+  user_id: number
   task: string
 }
 
@@ -18,6 +18,7 @@ const get = async () => {
 
 const post = async (values: TTasksParams) => {
   const { data } = await supabase.from(dbRoutes['tasks']).insert(values)
+  console.log(values, 'teh value')
 
   return data
 }
@@ -31,7 +32,7 @@ const patch = async (values: TTasksParams) => {
 }
 
 const remove = async ({ id }: { id: string }) => {
-  const { data } = await supabase.from('users').delete().eq('id', id)
+  const { data } = await supabase.from(dbRoutes['tasks']).delete().eq('id', id)
 
   return data
 }

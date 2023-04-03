@@ -13,7 +13,7 @@ const post = async (values: TEmail) => {
 }
 
 const get = async () => {
-  const { data } = await supabase.from(dbRoutes['users']).select(`*, users(*)`)
+  const { data } = await supabase.from(dbRoutes['users']).select()
 
   return data
 }
