@@ -12,6 +12,8 @@ import { Settings } from 'src/@core/context/settingsContext'
 // ** Components
 import ModeToggler from 'src/@core/layouts/components/shared-components/ModeToggler'
 import UserDropdown from 'src/@core/layouts/components/shared-components/UserDropdown'
+import { Engagespot } from '@engagespot/react-component'
+import { useEffect, useState } from 'react'
 
 interface Props {
   hidden: boolean
@@ -23,6 +25,12 @@ interface Props {
 const AppBarContent = (props: Props) => {
   // ** Props
   const { hidden, settings, saveSettings, toggleNavVisibility } = props
+  const [uniqueId, setUniqueId] = useState('')
+
+  useEffect(() => {
+    const email = localStorage.getItem('email')
+    setUniqueId(email ?? '')
+  }, [])
 
   return (
     <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -36,6 +44,9 @@ const AppBarContent = (props: Props) => {
         <ModeToggler settings={settings} saveSettings={saveSettings} />
       </Box>
       <Box className='actions-right' sx={{ display: 'flex', alignItems: 'center' }}>
+        {process.env.NEXT_PUBLIC_ENGAGESPOT_KEY && !!uniqueId && (
+          <Engagespot apiKey={process.env.NEXT_PUBLIC_ENGAGESPOT_KEY} userId={uniqueId}></Engagespot>
+        )}
         <UserDropdown settings={settings} />
       </Box>
     </Box>

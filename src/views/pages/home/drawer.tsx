@@ -29,6 +29,7 @@ import { dbRoutes } from 'src/configs/db'
 import { InputLabel, MenuItem, Select } from '@mui/material'
 import { useGetUsers } from '@services/auth'
 import { userRoles } from 'src/configs/general'
+import { IEngageSpotSendNotification, useSendEngageSpotNotification } from '@services/engagespot'
 
 interface SidebarAddUserType {
   open: boolean
@@ -61,6 +62,7 @@ const SidebarAddGstRate = (props: SidebarAddUserType) => {
   const toast = useCustomToast()
   const queryClient = useQueryClient()
   const users = useGetUsers()
+  const sendEngageSpotNotification = useSendEngageSpotNotification()
 
   // ** Hooks
   const {
@@ -85,12 +87,26 @@ const SidebarAddGstRate = (props: SidebarAddUserType) => {
   }, [selectedItem, setValue])
 
   const onSubmit = (values: TTasksParams) => {
+    const email = localStorage.getItem('email')
+
+    const notificationData = {
+      recipients: [email],
+      notification: {
+        title: `task ${selectedItem ? 'updated' : 'added'}`,
+        message: values.task
+      }
+    } as IEngageSpotSendNotification
+
     const finalActions = {
       onSuccess: () => {
-        toggle()
-        reset()
-        queryClient.invalidateQueries([dbRoutes['tasks']])
-        toast.success(`${selectedItem ? 'update' : 'create'} successfull`)
+        return sendEngageSpotNotification.mutate(notificationData, {
+          onSuccess: () => {
+            queryClient.invalidateQueries([dbRoutes['tasks']])
+            toast.success(`${selectedItem ? 'update' : 'create'} successfull`)
+            reset()
+            toggle()
+          }
+        })
       },
       onError: (err: any) => {
         const errMsg = errorMessageParser(err)

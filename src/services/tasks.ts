@@ -18,7 +18,6 @@ const get = async () => {
 
 const post = async (values: TTasksParams) => {
   const { data } = await supabase.from(dbRoutes['tasks']).insert(values)
-  console.log(values, 'teh value')
 
   return data
 }

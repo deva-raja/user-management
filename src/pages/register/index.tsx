@@ -33,18 +33,18 @@ import { useForm, Controller } from 'react-hook-form'
 import BlankLayout from 'src/@core/layouts/BlankLayout'
 
 // ** Hooks
-import { useAuth } from 'src/hooks/useAuth'
 import { useSettings } from 'src/@core/hooks/useSettings'
 
 // ** Demo Imports
 import FooterIllustrationsV2 from 'src/views/pages/auth/FooterIllustrationsV2'
-import supabase from 'src/configs/supabase'
 import { useRouter } from 'next/router'
 import { errorMessageParser } from 'src/@core/utils/error'
 import useCustomToast from 'src/@core/components/toast'
 import ButtonSpinner from 'src/@core/components/spinner/ButtonSpinner'
 import bcrypt from 'bcryptjs'
 import { userRoles } from 'src/configs/general'
+import { usePostRegister } from '@services/auth'
+import { useCreateEngageSpotUser } from '@services/engagespot'
 
 const defaultValues = {
   email: '',
@@ -131,10 +131,9 @@ const Register = () => {
 
   const router = useRouter()
   const toast = useCustomToast()
-  const [loading, setLoading] = useState(false)
+  const register = usePostRegister()
+  const createEngageSpotUser = useCreateEngageSpotUser()
   const onSubmit = async (data: FormData) => {
-    setLoading(true)
-
     const { email, username, password } = data
 
     const salt = bcrypt.genSaltSync(10)
@@ -147,17 +146,24 @@ const Register = () => {
       role: userRoles['client']
     }
 
-    const { data: response, error } = await supabase.from('users').insert(values).select()
-    if (response) {
-      console.log(response, 'the data')
-      router.push('/login')
+    const engageSpotData = {
+      identifier: email
     }
 
-    if (error) {
-      setLoading(false)
-      const errMsg = errorMessageParser(error)
-      toast.error(errMsg)
-    }
+    register.mutate(values, {
+      onSuccess: () => {
+        return createEngageSpotUser.mutate(engageSpotData, {
+          onSuccess: () => {
+            router.push('/login')
+          },
+          onError: (err) => console.log(err, 'te jam error')
+        })
+      },
+      onError: error => {
+        const errMsg = errorMessageParser(error)
+        toast.error(errMsg)
+      }
+    })
   }
 
   const imageSource = skin === 'bordered' ? 'auth-v2-register-illustration-bordered' : 'auth-v2-register-illustration'
@@ -346,9 +352,16 @@ const Register = () => {
                   <FormHelperText sx={{ mt: 0, color: 'error.main' }}>{errors.terms.message}</FormHelperText>
                 )}
               </FormControl>
-              <Button disabled={loading} fullWidth size='large' type='submit' variant='contained' sx={{ mb: 4 }}>
+              <Button
+                disabled={register.isLoading}
+                fullWidth
+                size='large'
+                type='submit'
+                variant='contained'
+                sx={{ mb: 4 }}
+              >
                 Sign up
-                {loading && <ButtonSpinner />}
+                {register.isLoading && <ButtonSpinner />}
               </Button>
               <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', justifyContent: 'center' }}>
                 <Typography sx={{ color: 'text.secondary', mr: 2 }}>Already have an account?</Typography>

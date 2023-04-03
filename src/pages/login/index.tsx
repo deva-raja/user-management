@@ -48,7 +48,7 @@ import useCustomToast from 'src/@core/components/toast'
 import { errorMessageParser } from 'src/@core/utils/error'
 import FooterIllustrationsV2 from 'src/views/pages/auth/FooterIllustrationsV2'
 import { useAuth } from 'src/hooks/useAuth'
-import { usePostGstRates } from 'src/services/auth'
+import { usePostLogin } from 'src/services/auth'
 
 // ** Styled Components
 const LoginIllustration = styled('img')(({ theme }) => ({
@@ -96,8 +96,8 @@ const schema = yup.object().shape({
 })
 
 const defaultValues = {
-  password: 'admin',
-  email: 'admin@vuexy.com'
+  password: 'password',
+  email: 'v@gmail.com'
 }
 
 interface FormData {
@@ -131,7 +131,7 @@ const LoginPage = () => {
   const toast = useCustomToast()
   const auth = useAuth()
 
-  const postMutation = usePostGstRates()
+  const postMutation = usePostLogin()
 
   const onSubmit = async (values: FormData) => {
     const data = {
@@ -145,13 +145,14 @@ const LoginPage = () => {
 
     postMutation.mutate(data, {
       onSuccess: data => {
-        const user:any = data?.[0]
+        const user: any = data?.[0]
         const isCorrectPassword = bcrypt.compareSync(values.password, user?.password)
 
         if (isCorrectPassword) {
           toast.success('login successfull')
           localStorage.setItem('id', user?.id)
           localStorage.setItem('role', user?.role)
+          localStorage.setItem('email', values?.email)
           auth.login(values)
           Router.push('/home')
         } else {
