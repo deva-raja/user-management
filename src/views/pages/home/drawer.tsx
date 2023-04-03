@@ -79,8 +79,6 @@ const SidebarAddGstRate = (props: SidebarAddUserType) => {
 
   useEffect(() => {
     if (selectedItem) {
-      console.log(selectedItem, 'the jam')
-
       setValue('user_id', selectedItem.users.id)
       setValue('task', selectedItem.task)
     }
@@ -148,7 +146,7 @@ const SidebarAddGstRate = (props: SidebarAddUserType) => {
       sx={{ '& .MuiDrawer-paper': { width: { xs: 300, sm: 400 } } }}
     >
       <Header>
-        <Typography variant='h6'>{selectedItem ? 'Edit' : 'Add'} Gst Rate</Typography>
+        <Typography variant='h6'>{selectedItem ? 'Edit' : 'Add'} Task</Typography>
         <IconButton
           size='small'
           onClick={handleClose}
