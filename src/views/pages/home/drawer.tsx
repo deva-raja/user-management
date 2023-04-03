@@ -16,20 +16,20 @@ import { Controller, useForm } from 'react-hook-form'
 import * as yup from 'yup'
 
 // ** Icon Imports
+import { useQueryClient } from '@tanstack/react-query'
+import { errorMessageParser } from '@utils/error'
+import { useEffect } from 'react'
 import ErrorBox from 'src/@core/components/error/ErrorBox'
 import Icon from 'src/@core/components/icon'
 import ButtonSpinner from 'src/@core/components/spinner/ButtonSpinner'
-import { useEffect } from 'react'
-import { errorMessageParser } from '@utils/error'
-import { useQueryClient } from '@tanstack/react-query'
 
 import useCustomToast from '@components/toast'
-import { TTasksParams, usePostTasks, usePatchTasks, TTasks } from '@services/tasks'
-import { dbRoutes } from 'src/configs/db'
 import { InputLabel, MenuItem, Select } from '@mui/material'
 import { useGetUsers } from '@services/auth'
+import { useSendEngageSpotNotification } from '@services/engagespot'
+import { TTasks, TTasksParams, usePatchTasks, usePostTasks } from '@services/tasks'
+import { dbRoutes } from 'src/configs/db'
 import { userRoles } from 'src/configs/general'
-import { IEngageSpotSendNotification, useSendEngageSpotNotification } from '@services/engagespot'
 
 interface SidebarAddUserType {
   open: boolean
@@ -88,6 +88,7 @@ const SidebarAddGstRate = (props: SidebarAddUserType) => {
 
   const onSubmit = (values: TTasksParams) => {
     const email = localStorage.getItem('email')
+    if (!email) return
 
     const notificationData = {
       recipients: [email],
@@ -95,7 +96,7 @@ const SidebarAddGstRate = (props: SidebarAddUserType) => {
         title: `task ${selectedItem ? 'updated' : 'added'}`,
         message: values.task
       }
-    } as IEngageSpotSendNotification
+    }
 
     const finalActions = {
       onSuccess: () => {

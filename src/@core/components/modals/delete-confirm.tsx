@@ -10,6 +10,7 @@ import { UseMutationResult, useQueryClient } from '@tanstack/react-query'
 import Icon from 'src/@core/components/icon'
 import useCustomToast from '../toast'
 import { errorMessageParser } from 'src/@core/utils/error'
+import { useSendEngageSpotNotification } from '@services/engagespot'
 
 const DeleteConfirmModal = ({
   open,
@@ -29,17 +30,32 @@ const DeleteConfirmModal = ({
   const toast = useCustomToast()
   const handleClose = () => setOpen(false)
   const queryClient = useQueryClient()
+  const sendEngageSpotNotification = useSendEngageSpotNotification()
 
   const handleSubmit = () => {
     const data = {
       id: idToRemove
     }
 
+    const email = localStorage.getItem('email')
+    if (!email) return
+
+    const notificationData = {
+      recipients: [email],
+      notification: {
+        title: `task removed`
+      }
+    }
+
     remove.mutate(data, {
       onSuccess: () => {
-        toast.success('delete success')
-        handleClose()
-        queryClient.invalidateQueries([routeToInvalidate])
+        return sendEngageSpotNotification.mutate(notificationData, {
+          onSuccess: () => {
+            toast.success('delete success')
+            handleClose()
+            queryClient.invalidateQueries([routeToInvalidate])
+          }
+        })
       },
       onError: err => {
         const errMsg = errorMessageParser(err)
