@@ -22,3 +22,7 @@ code:not([class*='language-']):after {
 code[class*='language-'] {
   padding: 0;
 }
+
+#engagespot_container img {
+  display: none !important;
+}

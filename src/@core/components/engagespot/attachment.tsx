@@ -12,8 +12,8 @@ function NotificationActionItems({ notificationAttachment }: { notificationAttac
     <button
       style={{
         margin: '10px 0',
-        backgroundColor: '#e8e6fd',
-        color: '#7367F0',
+        backgroundColor: '#7367F0',
+        color: 'white',
         borderRadius: '4px',
         display: 'flex',
         alignItems: 'center'
@@ -21,7 +21,7 @@ function NotificationActionItems({ notificationAttachment }: { notificationAttac
       onClick={handleRedirect}
     >
       <Icon icon='tabler:link' fontSize={16} style={{ marginRight: '4px' }} />
-      attachment
+      view attachment
     </button>
   )
 }
@@ -31,9 +31,13 @@ function NotificationActionItems({ notificationAttachment }: { notificationAttac
 function Notification({ notification }: any) {
   return (
     <>
-      <p style={{ fontSize: '14px', marginBottom: '6px' }}>{notification.heading}</p>
-      <p style={{ fontSize: '12px' }}>{notification.data.message}</p>
-      <NotificationActionItems notificationAttachment={notification.data.attachment} />
+      <p style={{ fontSize: '14px', color: '#cec7d5', fontWeight: '600', marginBottom: '4px' }}>Admin</p>
+      <p style={{ fontSize: '16px', color: '#55516b', fontWeight: '500', marginBottom: '4px' }}>
+        {`${notification?.data?.title} - ${notification?.data?.message}`}
+      </p>
+      {notification?.data?.attachment && (
+        <NotificationActionItems notificationAttachment={notification.data.attachment} />
+      )}
       <p style={{ fontSize: '11px', color: '#888888' }}>{notification.time}</p>
     </>
   )

@@ -50,7 +50,8 @@ const DeleteConfirmModal = ({
         templateId: engageSpotTemplates['tasks']
       },
       data: {
-        title: `Admin remove the task`
+        title: `Removed the task`,
+        message: itemToRemove?.task
       }
     }
 

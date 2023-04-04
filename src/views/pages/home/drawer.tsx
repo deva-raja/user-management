@@ -124,7 +124,7 @@ const SidebarAddTasks = (props: SidebarAddUserType) => {
         templateId: engageSpotTemplates['tasks']
       },
       data: {
-        title: `Admin ${selectedItem ? 'updated the' : 'assigned a'} task`,
+        title: `${selectedItem ? 'Updated the' : 'Assigned a'} task`,
         attachment: attachments?.[0],
         message: values.task
       }

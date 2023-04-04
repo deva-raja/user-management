@@ -34,7 +34,29 @@ const AppBarContent = (props: Props) => {
 
   const theme = {
     colors: {
-      brandingPrimary: '#7367F0'
+      // brandingPrimary: '#7367F0'
+
+      brandingPrimary: 'white',
+      colorPrimary: '#7367F0',
+      colorSecondary: '#7367F0'
+    },
+    header: {
+      fontColor: '#7367F0',
+      padding: '0 0 0 0',
+      fontWeight: '600'
+    },
+    feedItem: {
+      imageSize: '48px',
+      imageRadius: '16px',
+      hoverBackground: '#fbf7ff',
+      notificationDot: '#7053dd'
+    },
+    panel: {
+      width: '380px'
+    },
+    unreadBadgeCount: {
+      background: '#7053dd',
+      color: '#7053dd'
     }
   }
 
@@ -51,20 +73,21 @@ const AppBarContent = (props: Props) => {
       </Box>
       <Box className='actions-right' sx={{ display: 'flex', alignItems: 'center' }}>
         {process.env.NEXT_PUBLIC_ENGAGESPOT_KEY && !!uniqueId && (
-          <Engagespot
-            theme={theme}
-            apiKey={process.env.NEXT_PUBLIC_ENGAGESPOT_KEY}
-            userId={uniqueId}
-            renderNotificationBody={notification => {
-              if (notification?.data?.attachment) {
+          <div id='engagespot_container'>
+            <Engagespot
+              theme={theme}
+              apiKey={process.env.NEXT_PUBLIC_ENGAGESPOT_KEY}
+              userId={uniqueId}
+              hideNotificationAvatar={true}
+              renderNotificationBody={notification => {
                 return (
                   <>
                     <Notification notification={notification} />
                   </>
                 )
-              }
-            }}
-          />
+              }}
+            />
+          </div>
         )}
         <UserDropdown settings={settings} />
       </Box>
