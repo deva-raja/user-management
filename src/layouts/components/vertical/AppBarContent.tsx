@@ -5,15 +5,15 @@ import IconButton from '@mui/material/IconButton'
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
 
-
 // ** Type Import
 import { Settings } from 'src/@core/context/settingsContext'
 
 // ** Components
-import ModeToggler from 'src/@core/layouts/components/shared-components/ModeToggler'
-import UserDropdown from 'src/@core/layouts/components/shared-components/UserDropdown'
+import Notification from '@components/engagespot/attachment'
 import { Engagespot } from '@engagespot/react-component'
 import { useEffect, useState } from 'react'
+import ModeToggler from 'src/@core/layouts/components/shared-components/ModeToggler'
+import UserDropdown from 'src/@core/layouts/components/shared-components/UserDropdown'
 
 interface Props {
   hidden: boolean
@@ -32,6 +32,12 @@ const AppBarContent = (props: Props) => {
     setUniqueId(email ?? '')
   }, [])
 
+  const theme = {
+    colors: {
+      brandingPrimary: '#7367F0'
+    }
+  }
+
   return (
     <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
       <Box className='actions-left' sx={{ mr: 2, display: 'flex', alignItems: 'center' }}>
@@ -45,7 +51,20 @@ const AppBarContent = (props: Props) => {
       </Box>
       <Box className='actions-right' sx={{ display: 'flex', alignItems: 'center' }}>
         {process.env.NEXT_PUBLIC_ENGAGESPOT_KEY && !!uniqueId && (
-          <Engagespot apiKey={process.env.NEXT_PUBLIC_ENGAGESPOT_KEY} userId={uniqueId}></Engagespot>
+          <Engagespot
+            theme={theme}
+            apiKey={process.env.NEXT_PUBLIC_ENGAGESPOT_KEY}
+            userId={uniqueId}
+            renderNotificationBody={notification => {
+              if (notification?.data?.attachment) {
+                return (
+                  <>
+                    <Notification notification={notification} />
+                  </>
+                )
+              }
+            }}
+          />
         )}
         <UserDropdown settings={settings} />
       </Box>

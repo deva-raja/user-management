@@ -33,7 +33,7 @@ import { getFilesPublicUrl, useHandleFileDelete, useHandleFileUpload } from '@se
 import { TTasks, TTasksParams, usePatchTasks, usePostTasks } from '@services/tasks'
 import DropzoneWrapper from 'src/@core/styles/libs/react-dropzone'
 import { dbRoutes } from 'src/configs/db'
-import { userRoles } from 'src/configs/general'
+import { engageSpotTemplates, userRoles } from 'src/configs/general'
 
 interface SidebarAddUserType {
   open: boolean
@@ -118,7 +118,14 @@ const SidebarAddTasks = (props: SidebarAddUserType) => {
     const notificationData = {
       recipients: [email],
       notification: {
-        title: `task ${selectedItem ? 'updated' : 'added'}`,
+        // title: `task ${selectedItem ? 'updated' : 'added'}`,
+        // message: values.task
+
+        templateId: engageSpotTemplates['tasks']
+      },
+      data: {
+        title: `Admin ${selectedItem ? 'updated the' : 'assigned a'} task`,
+        attachment: attachments?.[0],
         message: values.task
       }
     }

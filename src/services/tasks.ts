@@ -12,7 +12,7 @@ export type TTasksParams = {
 export type TTasks = any
 
 const get = async () => {
-  const { data } = await supabase.from(dbRoutes['tasks']).select(`*, users(*)`)
+  const { data } = await supabase.from(dbRoutes['tasks']).select(`*, users(*)`).order('id', { ascending: false })
 
   return data
 }

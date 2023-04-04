@@ -13,6 +13,7 @@ import { errorMessageParser } from 'src/@core/utils/error'
 import { useSendEngageSpotNotification } from '@services/engagespot'
 import { TTasks } from '@services/tasks'
 import { useHandleFileDelete } from '@services/file'
+import { engageSpotTemplates } from 'src/configs/general'
 
 const DeleteConfirmModal = ({
   open,
@@ -46,7 +47,10 @@ const DeleteConfirmModal = ({
     const notificationData = {
       recipients: [email],
       notification: {
-        title: `task removed`
+        templateId: engageSpotTemplates['tasks']
+      },
+      data: {
+        title: `Admin remove the task`
       }
     }
 
@@ -63,8 +67,8 @@ const DeleteConfirmModal = ({
 
         return sendEngageSpotNotification.mutate(notificationData, {
           onSuccess: () => {
-            toast.success('delete success')
             handleClose()
+            toast.success('delete success')
             queryClient.invalidateQueries([routeToInvalidate])
           },
           onError: err => {

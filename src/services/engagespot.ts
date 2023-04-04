@@ -8,15 +8,14 @@ export interface IEngageSpotCreateUser {
 
 export interface IEngageSpotSendNotification {
   notification?: {
-    title: string
+    title?: string
     message?: string
     icon?: string
     url?: string
+    templateId?: number
   }
   recipients: string[]
-  data?: {
-    optional: string
-  }
+  data?: any
   override?: {
     title: string
   }

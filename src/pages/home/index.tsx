@@ -7,7 +7,7 @@ import Card from '@mui/material/Card'
 import Typography from '@mui/material/Typography'
 import CardHeader from '@mui/material/CardHeader'
 import IconButton from '@mui/material/IconButton'
-import { DataGrid, GridRowHeightParams, gridClasses } from '@mui/x-data-grid'
+import { DataGrid, gridClasses } from '@mui/x-data-grid'
 import { Tooltip } from '@mui/material'
 
 import { useGetTasks, useDeleteTasks, TTasks } from 'src/services/tasks'
@@ -24,7 +24,7 @@ const Tasks = () => {
   const remove = useDeleteTasks()
   const [openConfirmation, setOpenConfirmation] = useState<boolean>(false)
 
-  const gstRates = useGetTasks()
+  const tasks = useGetTasks()
 
   const toggleDrawer = () => {
     setSelectedItem(null)
@@ -162,7 +162,7 @@ const Tasks = () => {
               autoHeight
               getEstimatedRowHeight={() => 80}
               getRowHeight={() => 'auto'}
-              rows={gstRates?.data ?? ([] as TTasks['data'])}
+              rows={tasks?.data ?? ([] as TTasks['data'])}
               density={'standard'}
               columns={columns}
               pageSize={pageSize}
