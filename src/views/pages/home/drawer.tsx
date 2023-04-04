@@ -18,16 +18,19 @@ import * as yup from 'yup'
 // ** Icon Imports
 import { useQueryClient } from '@tanstack/react-query'
 import { errorMessageParser } from '@utils/error'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import ErrorBox from 'src/@core/components/error/ErrorBox'
 import Icon from 'src/@core/components/icon'
 import ButtonSpinner from 'src/@core/components/spinner/ButtonSpinner'
 
+import FileUploaderMultiple from '@components/file-upload/FileUploaderMultiple'
 import useCustomToast from '@components/toast'
 import { InputLabel, MenuItem, Select } from '@mui/material'
 import { useGetUsers } from '@services/auth'
 import { useSendEngageSpotNotification } from '@services/engagespot'
+import { getFilesPublicUrl, useHandleFileDelete, useHandleFileUpload } from '@services/file'
 import { TTasks, TTasksParams, usePatchTasks, usePostTasks } from '@services/tasks'
+import DropzoneWrapper from 'src/@core/styles/libs/react-dropzone'
 import { dbRoutes } from 'src/configs/db'
 import { userRoles } from 'src/configs/general'
 
@@ -54,7 +57,7 @@ const defaultValues = {
   user_id: 0
 }
 
-const SidebarAddGstRate = (props: SidebarAddUserType) => {
+const SidebarAddTasks = (props: SidebarAddUserType) => {
   // ** Props
   const { open, toggle, selectedItem } = props
   const post = usePostTasks()
@@ -63,6 +66,9 @@ const SidebarAddGstRate = (props: SidebarAddUserType) => {
   const queryClient = useQueryClient()
   const users = useGetUsers()
   const sendEngageSpotNotification = useSendEngageSpotNotification()
+  const [files, setFiles] = useState<File[] | string[]>([])
+  const handleFileUpload = useHandleFileUpload()
+  const deleteFile = useHandleFileDelete()
 
   // ** Hooks
   const {
@@ -81,12 +87,32 @@ const SidebarAddGstRate = (props: SidebarAddUserType) => {
     if (selectedItem) {
       setValue('user_id', selectedItem.users.id)
       setValue('task', selectedItem.task)
+
+      if (selectedItem.attachment) {
+        const attachment = getFilesPublicUrl(selectedItem.attachment)
+        setFiles([attachment.publicUrl])
+      }
     }
   }, [selectedItem, setValue])
 
-  const onSubmit = (values: TTasksParams) => {
+  const onSubmit = async (values: TTasksParams) => {
     const email = localStorage.getItem('email')
     if (!email) return
+
+    const attachments = await Promise.all(
+      [...files]
+        .filter(item => typeof item !== 'string')
+        .map(async file => {
+          try {
+            const response = await handleFileUpload.mutateAsync(file as File)
+
+            return response?.path
+          } catch (err) {
+            const errMsg = errorMessageParser(err)
+            toast.error(errMsg)
+          }
+        })
+    )
 
     const notificationData = {
       recipients: [email],
@@ -97,13 +123,28 @@ const SidebarAddGstRate = (props: SidebarAddUserType) => {
     }
 
     const finalActions = {
-      onSuccess: () => {
+      onSuccess: async () => {
+        // rollback
+        if (selectedItem) {
+          const alreadyUploadedAttachment = selectedItem.attachment
+
+          if (files?.[0] !== alreadyUploadedAttachment) {
+            deleteFile.mutate(alreadyUploadedAttachment, {
+              onError: (err: any) => {
+                const errMsg = errorMessageParser(err)
+                toast.error(errMsg)
+              }
+            })
+          }
+        }
+
         return sendEngageSpotNotification.mutate(notificationData, {
-          onSuccess: () => {
+          onSuccess: async () => {
             queryClient.invalidateQueries([dbRoutes['tasks']])
             toast.success(`${selectedItem ? 'update' : 'create'} successfull`)
             reset()
             toggle()
+            setFiles([])
           }
         })
       },
@@ -117,14 +158,26 @@ const SidebarAddGstRate = (props: SidebarAddUserType) => {
       const data = {
         ...values,
         user_id: Number(values.user_id),
-        id: selectedItem.id
+        id: selectedItem.id,
+        ...(attachments &&
+          attachments.length > 0 && {
+            attachment: attachments[0]
+          }),
+        ...(files &&
+          files.length === 0 && {
+            attachment: null
+          })
       }
 
       patch.mutate(data, finalActions)
     } else {
       const data = {
         ...values,
-        user_id: Number(values.user_id)
+        user_id: Number(values.user_id),
+        ...(attachments &&
+          attachments.length > 0 && {
+            attachment: attachments[0]
+          })
       }
 
       post.mutate(data, finalActions)
@@ -134,6 +187,7 @@ const SidebarAddGstRate = (props: SidebarAddUserType) => {
   const handleClose = () => {
     toggle()
     reset()
+    setFiles([])
   }
 
   return (
@@ -206,10 +260,21 @@ const SidebarAddGstRate = (props: SidebarAddUserType) => {
             {errors.task && <ErrorBox error={errors.task} />}
           </FormControl>
 
+          <FormControl fullWidth sx={{ mb: 4 }}>
+            <DropzoneWrapper>
+              <FileUploaderMultiple files={files} setFiles={setFiles} />
+            </DropzoneWrapper>
+          </FormControl>
+
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            <Button disabled={post.isLoading || patch.isLoading} type='submit' variant='contained' sx={{ mr: 3 }}>
+            <Button
+              disabled={post.isLoading || patch.isLoading || handleFileUpload.isLoading  || deleteFile.isLoading}
+              type='submit'
+              variant='contained'
+              sx={{ mr: 3 }}
+            >
               Submit
-              {(post.isLoading || patch.isLoading) && <ButtonSpinner />}
+              {(post.isLoading || patch.isLoading || handleFileUpload.isLoading || deleteFile.isLoading) && <ButtonSpinner />}
             </Button>
             <Button variant='outlined' color='secondary' onClick={handleClose}>
               Cancel
@@ -221,4 +286,4 @@ const SidebarAddGstRate = (props: SidebarAddUserType) => {
   )
 }
 
-export default SidebarAddGstRate
+export default SidebarAddTasks

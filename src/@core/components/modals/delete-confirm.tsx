@@ -11,18 +11,20 @@ import Icon from 'src/@core/components/icon'
 import useCustomToast from '../toast'
 import { errorMessageParser } from 'src/@core/utils/error'
 import { useSendEngageSpotNotification } from '@services/engagespot'
+import { TTasks } from '@services/tasks'
+import { useHandleFileDelete } from '@services/file'
 
 const DeleteConfirmModal = ({
   open,
   remove,
   setOpen,
   routeToInvalidate,
-  idToRemove
+  itemToRemove
 }: {
   open: boolean
   setOpen: React.Dispatch<React.SetStateAction<boolean>>
   remove: UseMutationResult<null, unknown, { id: string }, unknown>
-  idToRemove: string
+  itemToRemove: TTasks['data'][0]
   routeToInvalidate: string
 }) => {
   // ** State
@@ -31,10 +33,11 @@ const DeleteConfirmModal = ({
   const handleClose = () => setOpen(false)
   const queryClient = useQueryClient()
   const sendEngageSpotNotification = useSendEngageSpotNotification()
+  const deleteFile = useHandleFileDelete()
 
   const handleSubmit = () => {
     const data = {
-      id: idToRemove
+      id: itemToRemove.id
     }
 
     const email = localStorage.getItem('email')
@@ -49,11 +52,24 @@ const DeleteConfirmModal = ({
 
     remove.mutate(data, {
       onSuccess: () => {
+        if (itemToRemove?.attachment) {
+          deleteFile.mutate(itemToRemove.attachment, {
+            onError: err => {
+              const errMsg = errorMessageParser(err)
+              toast.error(errMsg)
+            }
+          })
+        }
+
         return sendEngageSpotNotification.mutate(notificationData, {
           onSuccess: () => {
             toast.success('delete success')
             handleClose()
             queryClient.invalidateQueries([routeToInvalidate])
+          },
+          onError: err => {
+            const errMsg = errorMessageParser(err)
+            toast.error(errMsg)
           }
         })
       },
@@ -88,7 +104,7 @@ const DeleteConfirmModal = ({
         </DialogTitle>
         <DialogActions className='dialog-actions-dense'>
           <Button onClick={handleClose}>Close</Button>
-          <Button disabled={remove.isLoading} color='error' onClick={handleSubmit}>
+          <Button disabled={remove.isLoading || deleteFile.isLoading} color='error' onClick={handleSubmit}>
             Delete
           </Button>
         </DialogActions>

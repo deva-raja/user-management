@@ -12,7 +12,7 @@ import { Tooltip } from '@mui/material'
 
 import { useGetTasks, useDeleteTasks, TTasks } from 'src/services/tasks'
 
-import SidebarAddGstRate from 'src/views/pages/home/drawer'
+import SidebarAddTasks from 'src/views/pages/home/drawer'
 import DeleteConfirmModal from 'src/@core/components/modals/delete-confirm'
 import { dbRoutes } from 'src/configs/db'
 
@@ -22,7 +22,6 @@ const Tasks = () => {
   const [selectedItem, setSelectedItem] = useState<null | TTasks['data'][0]>(null)
   const remove = useDeleteTasks()
   const [openConfirmation, setOpenConfirmation] = useState<boolean>(false)
-  const [idToRemove, setIdToRemove] = useState('')
 
   const gstRates = useGetTasks()
 
@@ -42,7 +41,7 @@ const Tasks = () => {
     }
 
     const handleDeleteOpen = () => {
-      setIdToRemove(item.id)
+      setSelectedItem(item)
       setOpenConfirmation(true)
     }
 
@@ -137,14 +136,14 @@ const Tasks = () => {
           </Card>
         </Grid>
 
-        <SidebarAddGstRate selectedItem={selectedItem} open={drawerOpen} toggle={toggleDrawer} />
+        <SidebarAddTasks selectedItem={selectedItem} open={drawerOpen} toggle={toggleDrawer} />
 
         <DeleteConfirmModal
           routeToInvalidate={dbRoutes['tasks']}
           open={openConfirmation}
           remove={remove}
           setOpen={setOpenConfirmation}
-          idToRemove={idToRemove}
+          itemToRemove={selectedItem}
         />
       </Grid>
     </>

@@ -6,6 +6,7 @@ export type TTasksParams = {
   id?: string
   user_id: number
   task: string
+  attachment?: string | null
 }
 
 export type TTasks = any
