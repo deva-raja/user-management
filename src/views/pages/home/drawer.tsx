@@ -8,6 +8,7 @@ import FormControl from '@mui/material/FormControl'
 import IconButton from '@mui/material/IconButton'
 import { styled } from '@mui/material/styles'
 import TextField from '@mui/material/TextField'
+
 import Typography from '@mui/material/Typography'
 
 // ** Third Party Imports
@@ -253,6 +254,8 @@ const SidebarAddTasks = (props: SidebarAddUserType) => {
                   label='Task'
                   onChange={onChange}
                   placeholder='Enter task description'
+                  multiline
+                  rows={4}
                   error={Boolean(errors.task)}
                 />
               )}
@@ -268,13 +271,15 @@ const SidebarAddTasks = (props: SidebarAddUserType) => {
 
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
             <Button
-              disabled={post.isLoading || patch.isLoading || handleFileUpload.isLoading  || deleteFile.isLoading}
+              disabled={post.isLoading || patch.isLoading || handleFileUpload.isLoading || deleteFile.isLoading}
               type='submit'
               variant='contained'
               sx={{ mr: 3 }}
             >
               Submit
-              {(post.isLoading || patch.isLoading || handleFileUpload.isLoading || deleteFile.isLoading) && <ButtonSpinner />}
+              {(post.isLoading || patch.isLoading || handleFileUpload.isLoading || deleteFile.isLoading) && (
+                <ButtonSpinner />
+              )}
             </Button>
             <Button variant='outlined' color='secondary' onClick={handleClose}>
               Cancel

@@ -7,7 +7,7 @@ import Card from '@mui/material/Card'
 import Typography from '@mui/material/Typography'
 import CardHeader from '@mui/material/CardHeader'
 import IconButton from '@mui/material/IconButton'
-import { DataGrid } from '@mui/x-data-grid'
+import { DataGrid, GridRowHeightParams, gridClasses } from '@mui/x-data-grid'
 import { Tooltip } from '@mui/material'
 
 import { useGetTasks, useDeleteTasks, TTasks } from 'src/services/tasks'
@@ -15,6 +15,7 @@ import { useGetTasks, useDeleteTasks, TTasks } from 'src/services/tasks'
 import SidebarAddTasks from 'src/views/pages/home/drawer'
 import DeleteConfirmModal from 'src/@core/components/modals/delete-confirm'
 import { dbRoutes } from 'src/configs/db'
+import { getFilesPublicUrl } from '@services/file'
 
 const Tasks = () => {
   const [pageSize, setPageSize] = useState<number>(10)
@@ -64,15 +65,15 @@ const Tasks = () => {
 
   const columns = [
     {
-      flex: 0.15,
+      flex: 0.3,
       minWidth: 190,
       field: 'Task',
       headerName: 'Task',
       renderCell: ({ row }: CellType) => {
         return (
-          <Typography noWrap sx={{ color: 'text.secondary' }}>
-            {`${row.task}`}
-          </Typography>
+          <Typography
+            sx={{ color: 'text.secondary', wordBreak: 'break-word', whiteSpace: 'normal' }}
+          >{`${row.task}`}</Typography>
         )
       }
     },
@@ -86,6 +87,40 @@ const Tasks = () => {
           <Typography noWrap sx={{ color: 'text.secondary' }}>
             {row?.users?.['name']}
           </Typography>
+        )
+      }
+    },
+    {
+      flex: 0.15,
+      minWidth: 190,
+      field: 'Attachment',
+      headerName: 'Attachment',
+      renderCell: ({ row }: CellType) => {
+        let attachment = {
+          publicUrl: ''
+        }
+
+        if (row.attachment) {
+          attachment = getFilesPublicUrl(row.attachment)
+        }
+
+        return (
+          <>
+            {row.attachment ? (
+              <Button
+                onClick={() => window.open(attachment?.publicUrl, '_blank')}
+                variant='text'
+                sx={{ '& svg': { mr: 2 } }}
+                size='small'
+              >
+                view
+              </Button>
+            ) : (
+              <Typography noWrap sx={{ color: 'text.secondary' }}>
+                {''}
+              </Typography>
+            )}
+          </>
         )
       }
     },
@@ -125,13 +160,20 @@ const Tasks = () => {
 
             <DataGrid
               autoHeight
-              rowHeight={62}
+              getEstimatedRowHeight={() => 80}
+              getRowHeight={() => 'auto'}
               rows={gstRates?.data ?? ([] as TTasks['data'])}
+              density={'standard'}
               columns={columns}
               pageSize={pageSize}
               disableSelectionOnClick
               rowsPerPageOptions={[10, 25, 50]}
               onPageSizeChange={(newPageSize: number) => setPageSize(newPageSize)}
+              sx={{
+                [`& .${gridClasses.cell}`]: {
+                  py: 2
+                }
+              }}
             />
           </Card>
         </Grid>
