@@ -97,7 +97,8 @@ const SidebarAddTasks = (props: SidebarAddUserType) => {
   }, [selectedItem, setValue])
 
   const onSubmit = async (values: TTasksParams) => {
-    const email = localStorage.getItem('email')
+    const user = JSON.parse(localStorage.getItem('user') as string)
+    const email = user?.email
     if (!email) return
 
     const attachments = await Promise.all(

@@ -10,6 +10,15 @@ type TRegister = {
   email: string
 }
 
+export interface IUser {
+  id: number
+  created_at: string
+  email: string
+  password: string
+  role: number
+  name: string
+}
+
 const login = async (values: TLogin) => {
   const { data } = await supabase.from(dbRoutes['users']).select().eq('email', values.email)
 

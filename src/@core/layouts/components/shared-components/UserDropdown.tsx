@@ -1,5 +1,5 @@
 // ** React Imports
-import { useState, SyntheticEvent, Fragment } from 'react'
+import { useState, SyntheticEvent, Fragment, useEffect } from 'react'
 
 // ** Next Import
 import { useRouter } from 'next/router'
@@ -22,6 +22,9 @@ import { useAuth } from 'src/hooks/useAuth'
 
 // ** Type Imports
 import { Settings } from 'src/@core/context/settingsContext'
+import { useQueryClient } from '@tanstack/react-query'
+import { userRoles } from 'src/configs/general'
+import { IUser } from '@services/auth'
 
 interface Props {
   settings: Settings
@@ -44,10 +47,19 @@ const MenuItemStyled = styled(MenuItem)<MenuItemProps>(({ theme }) => ({
 
 const UserDropdown = (props: Props) => {
   // ** Props
+
+  const queryClient = useQueryClient()
+
   const { settings } = props
 
   // ** States
   const [anchorEl, setAnchorEl] = useState<Element | null>(null)
+  const [user, setUser] = useState<IUser | null>(null)
+
+  useEffect(() => {
+    const user = JSON.parse(localStorage.getItem('user') as string)
+    setUser(user)
+  }, [])
 
   // ** Hooks
   const router = useRouter()
@@ -82,6 +94,7 @@ const UserDropdown = (props: Props) => {
   }
 
   const handleLogout = () => {
+    queryClient.clear()
     logout()
     handleDropdownClose()
   }
@@ -126,8 +139,12 @@ const UserDropdown = (props: Props) => {
               <Avatar alt='John Doe' src='/images/avatars/1.png' sx={{ width: '2.5rem', height: '2.5rem' }} />
             </Badge>
             <Box sx={{ display: 'flex', ml: 2.5, alignItems: 'flex-start', flexDirection: 'column' }}>
-              <Typography sx={{ fontWeight: 500 }}>John Doe</Typography>
-              <Typography variant='body2'>Admin</Typography>
+              {user && (
+                <>
+                  <Typography sx={{ fontWeight: 500 }}>{user?.name}</Typography>
+                  <Typography variant='body2'>{user?.role === userRoles['client'] ? 'Client' : 'Admin'}</Typography>
+                </>
+              )}
             </Box>
           </Box>
         </Box>

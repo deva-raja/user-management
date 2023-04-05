@@ -28,7 +28,8 @@ const AppBarContent = (props: Props) => {
   const [uniqueId, setUniqueId] = useState('')
 
   useEffect(() => {
-    const email = localStorage.getItem('email')
+    const user = JSON.parse(localStorage.getItem('user') as string)
+    const email = user?.email
     setUniqueId(email ?? '')
   }, [])
 

@@ -1,5 +1,6 @@
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { dbRoutes } from 'src/configs/db'
+import { userRoles } from 'src/configs/general'
 import supabase from 'src/configs/supabase'
 
 export type TTasksParams = {
@@ -12,7 +13,23 @@ export type TTasksParams = {
 export type TTasks = any
 
 const get = async () => {
-  const { data } = await supabase.from(dbRoutes['tasks']).select(`*, users(*)`).order('id', { ascending: false })
+  const user = JSON.parse(localStorage.getItem('user') as string)
+  const id = user?.id
+  const role = user?.role
+
+  // if admin
+  if (Number(role) === userRoles['super_admin']) {
+    const { data } = await supabase.from(dbRoutes['tasks']).select(`*, users(*)`).order('id', { ascending: false })
+
+    return data
+  }
+
+  // if client
+  const { data } = await supabase
+    .from(dbRoutes['tasks'])
+    .select(`*, users(*)`)
+    .order('id', { ascending: false })
+    .eq('user_id', id)
 
   return data
 }

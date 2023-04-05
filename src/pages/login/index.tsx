@@ -150,9 +150,7 @@ const LoginPage = () => {
 
         if (isCorrectPassword) {
           toast.success('login successfull')
-          localStorage.setItem('id', user?.id)
-          localStorage.setItem('role', user?.role)
-          localStorage.setItem('email', values?.email)
+          localStorage.setItem('user', JSON.stringify(user))
           auth.login(values)
           Router.push('/home')
         } else {

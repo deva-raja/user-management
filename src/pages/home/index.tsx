@@ -16,6 +16,7 @@ import SidebarAddTasks from 'src/views/pages/home/drawer'
 import DeleteConfirmModal from 'src/@core/components/modals/delete-confirm'
 import { dbRoutes } from 'src/configs/db'
 import { getFilesPublicUrl } from '@services/file'
+import { userRoles } from 'src/configs/general'
 
 const Tasks = () => {
   const [pageSize, setPageSize] = useState<number>(10)
@@ -23,6 +24,7 @@ const Tasks = () => {
   const [selectedItem, setSelectedItem] = useState<null | TTasks['data'][0]>(null)
   const remove = useDeleteTasks()
   const [openConfirmation, setOpenConfirmation] = useState<boolean>(false)
+  const user = JSON.parse(localStorage.getItem('user') as string)
 
   const tasks = useGetTasks()
 
@@ -48,17 +50,21 @@ const Tasks = () => {
 
     return (
       <>
-        <Tooltip title='edit' placement='top'>
-          <IconButton onClick={handleClick} size='small'>
-            <Icon icon='tabler:edit' />
-          </IconButton>
-        </Tooltip>
+        {user?.role === userRoles['super_admin'] ? (
+          <>
+            <Tooltip title='edit' placement='top'>
+              <IconButton onClick={handleClick} size='small'>
+                <Icon icon='tabler:edit' />
+              </IconButton>
+            </Tooltip>
 
-        <Tooltip title='delete' placement='top'>
-          <IconButton onClick={handleDeleteOpen} size='small'>
-            <Icon icon='tabler:trash' />
-          </IconButton>
-        </Tooltip>
+            <Tooltip title='delete' placement='top'>
+              <IconButton onClick={handleDeleteOpen} size='small'>
+                <Icon icon='tabler:trash' />
+              </IconButton>
+            </Tooltip>
+          </>
+        ) : null}
       </>
     )
   }
@@ -141,22 +147,24 @@ const Tasks = () => {
           <Card>
             <CardHeader title='Tasks' />
 
-            <Box
-              sx={{
-                rowGap: 2,
-                display: 'flex',
-                flexWrap: 'wrap',
-                alignItems: 'center',
-                justifyContent: 'flex-end',
-                marginBottom: '1rem',
-                marginRight: '1rem'
-              }}
-            >
-              <Button onClick={toggleDrawer} variant='contained' sx={{ '& svg': { mr: 2 } }}>
-                <Icon fontSize='1.125rem' icon='tabler:plus' />
-                Add
-              </Button>
-            </Box>
+            {user?.role === userRoles['super_admin'] && (
+              <Box
+                sx={{
+                  rowGap: 2,
+                  display: 'flex',
+                  flexWrap: 'wrap',
+                  alignItems: 'center',
+                  justifyContent: 'flex-end',
+                  marginBottom: '1rem',
+                  marginRight: '1rem'
+                }}
+              >
+                <Button onClick={toggleDrawer} variant='contained' sx={{ '& svg': { mr: 2 } }}>
+                  <Icon fontSize='1.125rem' icon='tabler:plus' />
+                  Add
+                </Button>
+              </Box>
+            )}
 
             <DataGrid
               autoHeight
