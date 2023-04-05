@@ -34,16 +34,8 @@ const AppBarContent = (props: Props) => {
 
   const theme = {
     colors: {
-      // brandingPrimary: '#7367F0'
-
-      brandingPrimary: 'white',
-      colorPrimary: '#7367F0',
-      colorSecondary: '#7367F0'
-    },
-    header: {
-      fontColor: '#7367F0',
-      padding: '0 0 0 0',
-      fontWeight: '600'
+      brandingPrimary: '#7367F0',
+      colorPrimary: '#7367F0'
     },
     feedItem: {
       imageSize: '48px',
