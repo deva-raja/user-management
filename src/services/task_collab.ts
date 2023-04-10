@@ -4,8 +4,8 @@ import { dbRoutes } from 'src/configs/db'
 import supabase from 'src/configs/supabase'
 
 export type TCollabsParams = {
-  id?: string
-  user_id: number
+  id?: number
+  user_id?: number
   task_id?: number
   status?: number
 }
@@ -23,7 +23,7 @@ const get = async (taskId?: number) => {
 }
 
 const post = async (values: TCollabsParams) => {
-  const { data } = await supabase.from(dbRoutes['tasks_collabs']).insert(values)
+  const { data } = await supabase.from(dbRoutes['tasks_collabs']).insert(values).select()
 
   return data
 }

@@ -26,8 +26,7 @@ import useCustomToast from '@components/toast'
 import { InputLabel, MenuItem, Select } from '@mui/material'
 import { useGetUsers } from '@services/auth'
 import { useSendEngageSpotNotification } from '@services/engagespot'
-import { useHandleFileDelete, useHandleFileUpload } from '@services/file'
-import { TTasks, TTasksParams, usePatchTasks } from '@services/tasks'
+import { TTasks, TTasksParams } from '@services/tasks'
 import { usePostCollabs } from '@services/task_collab'
 import { dbRoutes } from 'src/configs/db'
 import { collabStatus, engageSpotTemplates, notificationTypes, userRoles } from 'src/configs/general'
@@ -57,17 +56,11 @@ const SidebarAddCollab = (props: SidebarAddUserType) => {
   // ** Props
   const { open, toggle, selectedItem } = props
   const post = usePostCollabs()
-  const patch = usePatchTasks()
   const toast = useCustomToast()
   const queryClient = useQueryClient()
   const users = useGetUsers()
   const sendEngageSpotNotification = useSendEngageSpotNotification()
-  const handleFileUpload = useHandleFileUpload()
-  const deleteFile = useHandleFileDelete()
-  const selectedUser = JSON.parse(localStorage.getItem('user') as string)
   const user = JSON.parse(localStorage.getItem('user') as string)
-
-  console.log(selectedItem, 'the jam')
 
   // ** Hooks
   const {
@@ -86,20 +79,24 @@ const SidebarAddCollab = (props: SidebarAddUserType) => {
     const email = selectedUser?.email
     if (!email) return
 
-    const notificationData = {
-      recipients: [email],
-      notification: {
-        templateId: engageSpotTemplates['tasks']
-      },
-      data: {
-        title: `You have been requested as a collaborator`,
-        notificationType: notificationTypes['task_collab_request'],
-        sendBy: user?.name
-      }
-    }
-
     const finalActions = {
-      onSuccess: async () => {
+      onSuccess: async (response: any) => {
+        console.log(response, 'teh response')
+
+        const notificationData = {
+          recipients: [email],
+          notification: {
+            templateId: engageSpotTemplates['tasks']
+          },
+          data: {
+            title: `You have been requested as a collaborator for the task`,
+            message: selectedItem?.task,
+            notificationType: notificationTypes['task_collab_request'],
+            sendBy: user?.name,
+            task_collab: response
+          }
+        }
+
         return sendEngageSpotNotification.mutate(notificationData, {
           onSuccess: async () => {
             queryClient.invalidateQueries([dbRoutes['tasks_collabs']])
@@ -184,16 +181,9 @@ const SidebarAddCollab = (props: SidebarAddUserType) => {
           </FormControl>
 
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            <Button
-              disabled={post.isLoading || patch.isLoading || handleFileUpload.isLoading || deleteFile.isLoading}
-              type='submit'
-              variant='contained'
-              sx={{ mr: 3 }}
-            >
+            <Button disabled={post.isLoading} type='submit' variant='contained' sx={{ mr: 3 }}>
               Submit
-              {(post.isLoading || patch.isLoading || handleFileUpload.isLoading || deleteFile.isLoading) && (
-                <ButtonSpinner />
-              )}
+              {post.isLoading && <ButtonSpinner />}
             </Button>
             <Button variant='outlined' color='secondary' onClick={handleClose}>
               Cancel

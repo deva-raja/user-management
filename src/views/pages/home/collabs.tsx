@@ -12,7 +12,7 @@ import { ITaskCollabs } from '@type/task_collabs'
 import { useState } from 'react'
 import Icon from 'src/@core/components/icon'
 import CustomChip from 'src/@core/components/mui/chip'
-import { collabStatus } from 'src/configs/general'
+import { collabStatus, userRoles } from 'src/configs/general'
 import { TTasks } from 'src/services/tasks'
 
 interface CellType {
@@ -33,6 +33,8 @@ function CollabView({
   const taskId = selectedItem?.id
   const collabs = useGetCollabs(taskId)
   const [pageSize, setPageSize] = useState<number>(10)
+  const user = JSON.parse(localStorage.getItem('user') as string)
+  const taskOwner = selectedItem?.users.id === user.id
 
   const columns = [
     {
@@ -87,24 +89,28 @@ function CollabView({
 
         <CardHeader title='Collaborations' />
 
-        <CardMedia sx={{ color: 'text.secondary', padding: '0 1.5rem' }}>{`Task - ${selectedItem?.task}`}</CardMedia>
+        <CardMedia
+          sx={{ color: 'text.secondary', padding: '0 1.5rem', marginBottom: `${taskOwner ? '0rem' : '1rem'}` }}
+        >{`Task - ${selectedItem?.task}`}</CardMedia>
 
-        <Box
-          sx={{
-            rowGap: 2,
-            display: 'flex',
-            flexWrap: 'wrap',
-            alignItems: 'center',
-            justifyContent: 'flex-end',
-            marginBottom: '1rem',
-            marginRight: '1rem'
-          }}
-        >
-          <Button onClick={toggleCollabDrawer} variant='contained' sx={{ '& svg': { mr: 2 } }}>
-            <Icon fontSize='1.125rem' icon='tabler:plus' />
-            Add
-          </Button>
-        </Box>
+        {(taskOwner || user.role === userRoles['super_admin']) && (
+          <Box
+            sx={{
+              rowGap: 2,
+              display: 'flex',
+              flexWrap: 'wrap',
+              alignItems: 'center',
+              justifyContent: 'flex-end',
+              marginBottom: '1rem',
+              marginRight: '1rem'
+            }}
+          >
+            <Button onClick={toggleCollabDrawer} variant='contained' sx={{ '& svg': { mr: 2 } }}>
+              <Icon fontSize='1.125rem' icon='tabler:plus' />
+              Add
+            </Button>
+          </Box>
+        )}
 
         <DataGrid
           autoHeight

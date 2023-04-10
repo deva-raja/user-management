@@ -26,3 +26,7 @@ code[class*='language-'] {
 #engagespot_container img {
   display: none !important;
 }
+
+#engagespot_container button {
+  background: auto !important;
+}

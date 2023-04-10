@@ -1,7 +1,7 @@
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { ITasks } from '@type/tasks'
 import { dbRoutes } from 'src/configs/db'
-import { userRoles } from 'src/configs/general'
+import { collabStatus, userRoles } from 'src/configs/general'
 import supabase from 'src/configs/supabase'
 
 export type TTasksParams = {
@@ -26,13 +26,20 @@ const get = async () => {
   }
 
   // if client
+  const { data: taskCollabData } = await supabase
+    .from(dbRoutes['tasks'])
+    .select(`*, users(*), tasks_collabs!inner (*)`)
+    .order('id', { ascending: false })
+    .filter('tasks_collabs.user_id', 'eq', id)
+    .filter('tasks_collabs.status', 'eq', collabStatus['accepted'])
+
   const { data } = await supabase
     .from(dbRoutes['tasks'])
     .select(`*, users(*)`)
     .order('id', { ascending: false })
     .eq('user_id', id)
 
-  return data as unknown as TTasks['data']
+  return [...(taskCollabData ?? []), ...(data ?? [])] as unknown as TTasks['data']
 }
 
 const post = async (values: TTasksParams) => {
