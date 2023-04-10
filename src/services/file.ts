@@ -16,7 +16,9 @@ export const getFilesPublicUrl = (fileName: string) => {
   return data
 }
 
-export const deleteFile = (fileName: string) => {
+export const deleteFile = (fileName?: string) => {
+  if (!fileName) return Promise.reject('No file name provided')
+
   return supabase.storage.from(bucketRoutes['files']).remove([fileName])
 }
 
@@ -25,5 +27,5 @@ export const useHandleFileUpload = () => {
 }
 
 export const useHandleFileDelete = () => {
-  return useMutation((data: string) => deleteFile(data))
+  return useMutation((data?: string) => deleteFile(data))
 }

@@ -34,7 +34,7 @@ const register = async (values: TRegister) => {
 const get = async () => {
   const { data } = await supabase.from(dbRoutes['users']).select()
 
-  return data
+  return data as unknown as IUser[]
 }
 
 export const usePostLogin = () => {

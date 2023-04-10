@@ -1,51 +1,68 @@
-import Box from '@mui/material/Box'
-import Button from '@mui/material/Button'
+import { Tooltip } from '@mui/material'
 import Grid from '@mui/material/Grid'
+import IconButton from '@mui/material/IconButton'
 import { useState } from 'react'
 import Icon from 'src/@core/components/icon'
-import Card from '@mui/material/Card'
-import Typography from '@mui/material/Typography'
-import CardHeader from '@mui/material/CardHeader'
-import IconButton from '@mui/material/IconButton'
-import { DataGrid, gridClasses } from '@mui/x-data-grid'
-import { Tooltip } from '@mui/material'
 
-import { useGetTasks, useDeleteTasks, TTasks } from 'src/services/tasks'
+import { TTasks, useDeleteTasks } from 'src/services/tasks'
 
-import SidebarAddTasks from 'src/views/pages/home/drawer'
-import DeleteConfirmModal from 'src/@core/components/modals/delete-confirm'
+import { useDeleteCollabs } from '@services/task_collab'
+import { ITaskCollabs } from '@type/task_collabs'
+import SidebarAddCollab from '@views/pages/home/add-collab-drawer'
+import SidebarAddTasks from '@views/pages/home/add-task-drawer'
+import CollabView from '@views/pages/home/collabs'
+import TasksView from '@views/pages/home/tasks'
 import { dbRoutes } from 'src/configs/db'
-import { getFilesPublicUrl } from '@services/file'
 import { userRoles } from 'src/configs/general'
+import TaskDeleteModal from 'src/pages/home/task-delete-modal'
+import CollabDeleteModal from './collab-delete-modal'
 
 const Tasks = () => {
-  const [pageSize, setPageSize] = useState<number>(10)
-  const [drawerOpen, setDrawerOpen] = useState<boolean>(false)
+  const [addTaskDrawerOpen, setAddTaskDrawerOpen] = useState<boolean>(false)
+  const [collabDrawerOpen, setCollabDrawerOpen] = useState<boolean>(false)
   const [selectedItem, setSelectedItem] = useState<null | TTasks['data'][0]>(null)
-  const remove = useDeleteTasks()
-  const [openConfirmation, setOpenConfirmation] = useState<boolean>(false)
+  const [selectedCollab, setSelectedCollab] = useState<null | ITaskCollabs>(null)
+  const removeTasks = useDeleteTasks()
+  const removeCollab = useDeleteCollabs()
+  const [openTaskDeleteModal, setOpenTaskDeleteModal] = useState<boolean>(false)
+  const [openCollabDeleteModal, setOpenCollabDeleteModal] = useState(false)
+
   const user = JSON.parse(localStorage.getItem('user') as string)
 
-  const tasks = useGetTasks()
+  const [taskView, setTaskView] = useState(true)
+  const [collabView, setCollabView] = useState(false)
 
-  const toggleDrawer = () => {
+  const toggleAddTaskDrawer = () => {
     setSelectedItem(null)
-    setDrawerOpen(!drawerOpen)
+    setAddTaskDrawerOpen(!addTaskDrawerOpen)
   }
 
-  interface CellType {
-    row: TTasks['data'][0]
+  const toggleCollabDrawer = () => {
+    setCollabDrawerOpen(!collabDrawerOpen)
   }
 
-  const RowOptions = ({ item }: { item: TTasks['data'][0] }) => {
+  const handleCollabBack = () => {
+    setTaskView(true)
+    setCollabView(false)
+  }
+
+  const TasksRowOptions = ({ item }: { item: TTasks['data'][0] }) => {
     const handleClick = () => {
       setSelectedItem(item)
-      setDrawerOpen(!drawerOpen)
+      setAddTaskDrawerOpen(!addTaskDrawerOpen)
     }
 
     const handleDeleteOpen = () => {
       setSelectedItem(item)
-      setOpenConfirmation(true)
+      setOpenTaskDeleteModal(true)
+    }
+
+    const handleCollabOpen = () => {
+      setSelectedItem(item)
+
+      // setCollabDrawerOpen(true)
+      setTaskView(false)
+      setCollabView(true)
     }
 
     return (
@@ -63,137 +80,74 @@ const Tasks = () => {
                 <Icon icon='tabler:trash' />
               </IconButton>
             </Tooltip>
+
+            <Tooltip title='collab' placement='top'>
+              <IconButton onClick={handleCollabOpen} size='small'>
+                <Icon icon='tabler:plus' />
+              </IconButton>
+            </Tooltip>
           </>
-        ) : null}
+        ) : (
+          <>
+            <Tooltip title='collab' placement='top'>
+              <IconButton onClick={handleCollabOpen} size='small'>
+                <Icon icon='tabler:plus' />
+              </IconButton>
+            </Tooltip>
+          </>
+        )}
       </>
     )
   }
 
-  const columns = [
-    {
-      flex: 0.3,
-      minWidth: 190,
-      field: 'Task',
-      headerName: 'Task',
-      renderCell: ({ row }: CellType) => {
-        return (
-          <Typography
-            sx={{ color: 'text.secondary', wordBreak: 'break-word', whiteSpace: 'normal' }}
-          >{`${row.task}`}</Typography>
-        )
-      }
-    },
-    {
-      flex: 0.15,
-      minWidth: 190,
-      field: 'Assigned To',
-      headerName: 'Assigned To',
-      renderCell: ({ row }: CellType) => {
-        return (
-          <Typography noWrap sx={{ color: 'text.secondary' }}>
-            {row?.users?.['name']}
-          </Typography>
-        )
-      }
-    },
-    {
-      flex: 0.15,
-      minWidth: 190,
-      field: 'Attachment',
-      headerName: 'Attachment',
-      renderCell: ({ row }: CellType) => {
-        let attachment = {
-          publicUrl: ''
-        }
-
-        if (row.attachment) {
-          attachment = getFilesPublicUrl(row.attachment)
-        }
-
-        return (
-          <>
-            {row.attachment ? (
-              <Button
-                onClick={() => window.open(attachment?.publicUrl, '_blank')}
-                variant='text'
-                sx={{ '& svg': { mr: 2 } }}
-                size='small'
-              >
-                view
-              </Button>
-            ) : (
-              <Typography noWrap sx={{ color: 'text.secondary' }}>
-                {''}
-              </Typography>
-            )}
-          </>
-        )
-      }
-    },
-    {
-      flex: 0.1,
-      minWidth: 100,
-      sortable: false,
-      field: 'actions',
-      headerName: 'Actions',
-      renderCell: ({ row }: CellType) => <RowOptions item={row} />
+  const CollabRowOptions = ({ item }: { item: ITaskCollabs }) => {
+    const handleDeleteOpen = () => {
+      setSelectedCollab(item)
+      setOpenCollabDeleteModal(true)
     }
-  ]
+
+    return (
+      <>
+        <Tooltip title='delete' placement='top'>
+          <IconButton onClick={handleDeleteOpen} size='small'>
+            <Icon icon='tabler:trash' />
+          </IconButton>
+        </Tooltip>
+      </>
+    )
+  }
 
   return (
     <>
       <Grid container spacing={6.5}>
-        <Grid item xs={12}>
-          <Card>
-            <CardHeader title='Tasks' />
+        {taskView && <TasksView RowOptions={TasksRowOptions} toggleAddTaskDrawer={toggleAddTaskDrawer} user={user} />}
 
-            {user?.role === userRoles['super_admin'] && (
-              <Box
-                sx={{
-                  rowGap: 2,
-                  display: 'flex',
-                  flexWrap: 'wrap',
-                  alignItems: 'center',
-                  justifyContent: 'flex-end',
-                  marginBottom: '1rem',
-                  marginRight: '1rem'
-                }}
-              >
-                <Button onClick={toggleDrawer} variant='contained' sx={{ '& svg': { mr: 2 } }}>
-                  <Icon fontSize='1.125rem' icon='tabler:plus' />
-                  Add
-                </Button>
-              </Box>
-            )}
+        {collabView && (
+          <CollabView
+            handleBack={handleCollabBack}
+            RowOptions={CollabRowOptions}
+            toggleCollabDrawer={toggleCollabDrawer}
+            selectedItem={selectedItem}
+          />
+        )}
 
-            <DataGrid
-              autoHeight
-              getEstimatedRowHeight={() => 80}
-              getRowHeight={() => 'auto'}
-              rows={tasks?.data ?? ([] as TTasks['data'])}
-              density={'standard'}
-              columns={columns}
-              pageSize={pageSize}
-              disableSelectionOnClick
-              rowsPerPageOptions={[10, 25, 50]}
-              onPageSizeChange={(newPageSize: number) => setPageSize(newPageSize)}
-              sx={{
-                [`& .${gridClasses.cell}`]: {
-                  py: 2
-                }
-              }}
-            />
-          </Card>
-        </Grid>
+        <SidebarAddTasks selectedItem={selectedItem} open={addTaskDrawerOpen} toggle={toggleAddTaskDrawer} />
+        <SidebarAddCollab selectedItem={selectedItem} open={collabDrawerOpen} toggle={toggleCollabDrawer} />
 
-        <SidebarAddTasks selectedItem={selectedItem} open={drawerOpen} toggle={toggleDrawer} />
-
-        <DeleteConfirmModal
+        <TaskDeleteModal
           routeToInvalidate={dbRoutes['tasks']}
-          open={openConfirmation}
-          remove={remove}
-          setOpen={setOpenConfirmation}
+          open={openTaskDeleteModal}
+          remove={removeTasks}
+          setOpen={setOpenTaskDeleteModal}
           itemToRemove={selectedItem}
+        />
+
+        <CollabDeleteModal
+          routeToInvalidate={dbRoutes['tasks_collabs']}
+          open={openCollabDeleteModal}
+          remove={removeCollab}
+          setOpen={setOpenCollabDeleteModal}
+          itemToRemove={selectedCollab}
         />
       </Grid>
     </>

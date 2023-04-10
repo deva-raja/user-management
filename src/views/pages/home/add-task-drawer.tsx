@@ -33,7 +33,7 @@ import { getFilesPublicUrl, useHandleFileDelete, useHandleFileUpload } from '@se
 import { TTasks, TTasksParams, usePatchTasks, usePostTasks } from '@services/tasks'
 import DropzoneWrapper from 'src/@core/styles/libs/react-dropzone'
 import { dbRoutes } from 'src/configs/db'
-import { engageSpotTemplates, userRoles } from 'src/configs/general'
+import { engageSpotTemplates, notificationTypes, userRoles } from 'src/configs/general'
 
 interface SidebarAddUserType {
   open: boolean
@@ -97,7 +97,7 @@ const SidebarAddTasks = (props: SidebarAddUserType) => {
   }, [selectedItem, setValue])
 
   const onSubmit = async (values: TTasksParams) => {
-    const user = JSON.parse(localStorage.getItem('user') as string)
+    const user = users?.data?.find(item => item.id === Number(values.user_id))
     const email = user?.email
     if (!email) return
 
@@ -119,15 +119,14 @@ const SidebarAddTasks = (props: SidebarAddUserType) => {
     const notificationData = {
       recipients: [email],
       notification: {
-        // title: `task ${selectedItem ? 'updated' : 'added'}`,
-        // message: values.task
-
         templateId: engageSpotTemplates['tasks']
       },
       data: {
         title: `${selectedItem ? 'Updated the' : 'Assigned a'} task`,
         attachment: attachments?.[0],
-        message: values.task
+        message: values.task,
+        notificationType: selectedItem ? notificationTypes['task_edited'] : notificationTypes['task_assigned'],
+        sendBy: user?.name
       }
     }
 
@@ -167,7 +166,7 @@ const SidebarAddTasks = (props: SidebarAddUserType) => {
       const data = {
         ...values,
         user_id: Number(values.user_id),
-        id: selectedItem.id,
+        id: Number(selectedItem.id),
         ...(attachments &&
           attachments.length > 0 && {
             attachment: attachments[0]
