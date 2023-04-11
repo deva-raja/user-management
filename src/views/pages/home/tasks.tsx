@@ -107,7 +107,7 @@ function TasksView({
           }
         })
 
-        return collabNames.map(collabUser => {
+        return collabNames?.map(collabUser => {
           let color: CustomChipProps['color'] = 'warning'
 
           if (collabUser.status === 2) {
