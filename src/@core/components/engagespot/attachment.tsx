@@ -2,7 +2,7 @@ import Icon from 'src/@core/components/icon'
 import { getFilesPublicUrl } from '@services/file'
 import { Button } from '@mui/material'
 import { usePatchCollabs } from '@services/task_collab'
-import { collabStatus, notificationTypes } from 'src/configs/general'
+import { collabStatus, notificationTypes, taskStatus } from 'src/configs/general'
 import ButtonSpinner from '@components/spinner/ButtonSpinner'
 import useCustomToast from '@components/toast'
 import { errorMessageParser } from '@utils/error'
@@ -185,6 +185,14 @@ function Notification({ notification }: any) {
           </div>
         </div>
       )}
+
+      {!collabActionResult &&
+        notification?.data?.notificationType === notificationTypes['task_status_change'] &&
+        notification?.data?.statusData?.to === 'approved' && (
+          <div style={{ margin: '1rem 0' }} id='image_show_container'>
+            <img style={{ maxWidth: '100%' }} src='/images/success.gif' alt='approved' />
+          </div>
+        )}
 
       <p style={{ fontSize: '11px', color: '#888888' }}>{notification.time}</p>
     </>

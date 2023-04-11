@@ -27,6 +27,10 @@ code[class*='language-'] {
   display: none !important;
 }
 
+#engagespot_container #image_show_container img {
+  display: block !important;
+}
+
 #engagespot_container button {
   background: auto !important;
 }
