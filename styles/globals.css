@@ -27,7 +27,7 @@ code[class*='language-'] {
   display: none !important;
 }
 
-#engagespot_container #image_show_container img {
+#engagespot_container .image_show_container img {
   display: block !important;
 }
 

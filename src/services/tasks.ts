@@ -39,9 +39,9 @@ const get = async () => {
 
   const { data } = await supabase
     .from(dbRoutes['tasks'])
-    .select(`*, users(*), task_status(*)`)
+    .select(`*, users(*), task_status(*), tasks_collabs!inner (*)`)
     .order('id', { ascending: false })
-    .eq('user_id', id)
+    .filter('user_id', 'eq', id)
 
   return [...(taskCollabData ?? []), ...(data ?? [])] as unknown as TTasks['data']
 }

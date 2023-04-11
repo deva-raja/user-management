@@ -31,10 +31,11 @@ import { useGetUsers } from '@services/auth'
 import { useSendEngageSpotNotification } from '@services/engagespot'
 import { getFilesPublicUrl, useHandleFileDelete, useHandleFileUpload } from '@services/file'
 import { TTasks, TTasksParams, usePatchTasks, usePostTasks } from '@services/tasks'
+import { useGetAcceptedCollabs } from '@services/task_collab'
+import { useGetTaskStatus } from '@services/task_status'
 import DropzoneWrapper from 'src/@core/styles/libs/react-dropzone'
 import { dbRoutes } from 'src/configs/db'
 import { engageSpotTemplates, notificationTypes, userRoles } from 'src/configs/general'
-import { useGetTaskStatus } from '@services/task_status'
 
 interface SidebarAddUserType {
   open: boolean
@@ -74,8 +75,8 @@ const SidebarAddTasks = (props: SidebarAddUserType) => {
   const [files, setFiles] = useState<File[] | string[]>([])
   const handleFileUpload = useHandleFileUpload()
   const deleteFile = useHandleFileDelete()
+  const collabs = useGetAcceptedCollabs(selectedItem?.id)
 
-  // ** Hooks
   const {
     reset,
     control,
@@ -105,6 +106,7 @@ const SidebarAddTasks = (props: SidebarAddUserType) => {
     const selectedUser = users?.data?.find(item => item.id === Number(values.user_id))
     const email = selectedUser?.email
     const user = JSON.parse(localStorage.getItem('user') as string)
+    const collaboratorsEmail = collabs?.data?.map(collab => collab.users.email)
     if (!email) return
 
     const attachments = await Promise.all(
@@ -123,7 +125,7 @@ const SidebarAddTasks = (props: SidebarAddUserType) => {
     )
 
     const notificationData = {
-      recipients: [email, 'admin@gmail.com'],
+      recipients: [email, ...(collaboratorsEmail ?? [])],
       notification: {
         templateId: engageSpotTemplates['tasks']
       },

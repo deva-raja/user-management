@@ -1,6 +1,7 @@
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { ITaskCollabs } from '@type/task_collabs'
 import { dbRoutes } from 'src/configs/db'
+import { collabStatus } from 'src/configs/general'
 import supabase from 'src/configs/supabase'
 
 export type TCollabsParams = {
@@ -12,7 +13,18 @@ export type TCollabsParams = {
 
 export type TCollabs = any
 
-const get = async (taskId?: number) => {
+const get = async (taskId?: number, acceptedCollabs = false) => {
+  if (acceptedCollabs) {
+    const { data } = await supabase
+      .from(dbRoutes['tasks_collabs'])
+      .select(`*, users(*), tasks(*), collab_status(*)`)
+      .order('id', { ascending: false })
+      .eq('task_id', taskId)
+      .eq('status', collabStatus['accepted'])
+
+    return data as unknown as ITaskCollabs[]
+  }
+
   const { data } = await supabase
     .from(dbRoutes['tasks_collabs'])
     .select(`*, users(*), tasks(*), collab_status(*)`)
@@ -56,6 +68,13 @@ export const useDeleteCollabs = () => {
 
 export const useGetCollabs = (taskId?: number) => {
   return useQuery([dbRoutes['tasks_collabs']], () => get(taskId), {
+    enabled: Boolean(taskId),
+    cacheTime: 0
+  })
+}
+
+export const useGetAcceptedCollabs = (taskId?: number) => {
+  return useQuery([dbRoutes['tasks_collabs']], () => get(taskId, true), {
     enabled: Boolean(taskId),
     cacheTime: 0
   })

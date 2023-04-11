@@ -1,3 +1,4 @@
+import { CustomChipProps } from '@components/chip/types'
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
 import Card from '@mui/material/Card'
@@ -5,13 +6,13 @@ import CardHeader from '@mui/material/CardHeader'
 import Grid from '@mui/material/Grid'
 import Typography from '@mui/material/Typography'
 import { DataGrid, gridClasses } from '@mui/x-data-grid'
+import { useGetUsers } from '@services/auth'
+import { getFilesPublicUrl } from '@services/file'
 import { useState } from 'react'
 import Icon from 'src/@core/components/icon'
-import { TTasks, useGetTasks } from 'src/services/tasks'
-import { getFilesPublicUrl } from '@services/file'
-import { taskStatus, userRoles } from 'src/configs/general'
-import { CustomChipProps } from '@components/chip/types'
 import CustomChip from 'src/@core/components/mui/chip'
+import { taskStatus, userRoles } from 'src/configs/general'
+import { TTasks, useGetTasks } from 'src/services/tasks'
 
 interface CellType {
   row: TTasks['data'][0]
@@ -28,6 +29,7 @@ function TasksView({
 }) {
   const tasks = useGetTasks()
   const [pageSize, setPageSize] = useState<number>(10)
+  const users = useGetUsers()
 
   const columns = [
     {
@@ -57,7 +59,7 @@ function TasksView({
       }
     },
     {
-      flex: 0.15,
+      flex: 0.1,
       minWidth: 190,
       field: 'Attachment',
       headerName: 'Attachment',
@@ -93,10 +95,48 @@ function TasksView({
     {
       flex: 0.15,
       minWidth: 190,
+      field: 'Collaborators',
+      headerName: 'Collaborators',
+      renderCell: ({ row }: CellType) => {
+        const collabNames = row?.tasks_collabs?.map((collab: any) => {
+          const data = users.data?.find((user: any) => user.id === collab.user_id)
+
+          return {
+            ...data,
+            status: collab.status
+          }
+        })
+
+        return collabNames.map(collabUser => {
+          let color: CustomChipProps['color'] = 'warning'
+
+          if (collabUser.status === 2) {
+            color = 'success'
+          }
+
+          if (collabUser.status === 3) {
+            color = 'error'
+          }
+
+          return (
+            <CustomChip
+              key={collabUser?.id}
+              rounded
+              typeof='success'
+              skin='light'
+              label={collabUser?.name}
+              color={color}
+            />
+          )
+        })
+      }
+    },
+    {
+      flex: 0.15,
+      minWidth: 190,
       field: 'Status',
       headerName: 'Status',
       renderCell: ({ row }: CellType) => {
-        console.log(row, 'teh jam')
         let color: CustomChipProps['color'] = 'secondary'
 
         if (row?.task_status?.id === taskStatus['in progress']) {
