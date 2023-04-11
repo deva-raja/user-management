@@ -23,7 +23,7 @@ const get = async () => {
   if (Number(role) === userRoles['super_admin']) {
     const { data } = await supabase
       .from(dbRoutes['tasks'])
-      .select(`*, users(*), task_status(*)`)
+      .select(`*, users(*), task_status(*), tasks_collabs(*)`)
       .order('id', { ascending: false })
 
     return data as unknown as TTasks['data']
@@ -39,7 +39,7 @@ const get = async () => {
 
   const { data } = await supabase
     .from(dbRoutes['tasks'])
-    .select(`*, users(*), task_status(*), tasks_collabs!inner (*)`)
+    .select(`*, users(*), task_status(*), tasks_collabs(*)`)
     .order('id', { ascending: false })
     .filter('user_id', 'eq', id)
 
