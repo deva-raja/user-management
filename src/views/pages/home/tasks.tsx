@@ -60,7 +60,7 @@ function TasksView({
     },
     {
       flex: 0.1,
-      minWidth: 190,
+      minWidth: 150,
       field: 'Attachment',
       headerName: 'Attachment',
       renderCell: ({ row }: CellType) => {
@@ -132,8 +132,8 @@ function TasksView({
       }
     },
     {
-      flex: 0.15,
-      minWidth: 190,
+      flex: 0.1,
+      minWidth: 150,
       field: 'Status',
       headerName: 'Status',
       renderCell: ({ row }: CellType) => {
