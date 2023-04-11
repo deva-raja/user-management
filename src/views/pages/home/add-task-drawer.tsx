@@ -34,11 +34,13 @@ import { TTasks, TTasksParams, usePatchTasks, usePostTasks } from '@services/tas
 import DropzoneWrapper from 'src/@core/styles/libs/react-dropzone'
 import { dbRoutes } from 'src/configs/db'
 import { engageSpotTemplates, notificationTypes, userRoles } from 'src/configs/general'
+import { useGetTaskStatus } from '@services/task_status'
 
 interface SidebarAddUserType {
   open: boolean
   toggle: () => void
   selectedItem: null | TTasks['data'][0]
+  statusEdit: boolean
 }
 
 const Header = styled(Box)<BoxProps>(({ theme }) => ({
@@ -55,17 +57,19 @@ const schema = yup.object().shape({
 
 const defaultValues = {
   task: '',
-  user_id: 0
+  user_id: 0,
+  status: 1
 }
 
 const SidebarAddTasks = (props: SidebarAddUserType) => {
   // ** Props
-  const { open, toggle, selectedItem } = props
+  const { open, toggle, selectedItem, statusEdit } = props
   const post = usePostTasks()
   const patch = usePatchTasks()
   const toast = useCustomToast()
   const queryClient = useQueryClient()
   const users = useGetUsers()
+  const taskStatus = useGetTaskStatus()
   const sendEngageSpotNotification = useSendEngageSpotNotification()
   const [files, setFiles] = useState<File[] | string[]>([])
   const handleFileUpload = useHandleFileUpload()
@@ -88,6 +92,7 @@ const SidebarAddTasks = (props: SidebarAddUserType) => {
     if (selectedItem) {
       setValue('user_id', selectedItem.users.id)
       setValue('task', selectedItem.task)
+      setValue('status', selectedItem.task_status.id)
 
       if (selectedItem.attachment) {
         const attachment = getFilesPublicUrl(selectedItem.attachment)
@@ -97,8 +102,9 @@ const SidebarAddTasks = (props: SidebarAddUserType) => {
   }, [selectedItem, setValue])
 
   const onSubmit = async (values: TTasksParams) => {
-    const user = users?.data?.find(item => item.id === Number(values.user_id))
-    const email = user?.email
+    const selectedUser = users?.data?.find(item => item.id === Number(values.user_id))
+    const email = selectedUser?.email
+    const user = JSON.parse(localStorage.getItem('user') as string)
     if (!email) return
 
     const attachments = await Promise.all(
@@ -117,15 +123,26 @@ const SidebarAddTasks = (props: SidebarAddUserType) => {
     )
 
     const notificationData = {
-      recipients: [email],
+      recipients: [email, 'admin@gmail.com'],
       notification: {
         templateId: engageSpotTemplates['tasks']
       },
       data: {
-        title: `${selectedItem ? 'Updated the' : 'Assigned a'} task`,
+        title: `${selectedItem ? (statusEdit ? 'Changed Status of the task' : 'Updated the task') : 'Assigned a task'}`,
         attachment: attachments?.[0],
         message: values.task,
-        notificationType: selectedItem ? notificationTypes['task_edited'] : notificationTypes['task_assigned'],
+        notificationType: selectedItem
+          ? statusEdit
+            ? notificationTypes['task_status_change']
+            : notificationTypes['task_edited']
+          : notificationTypes['task_assigned'],
+        ...(selectedItem &&
+          statusEdit && {
+            statusData: {
+              from: selectedItem?.task_status?.name,
+              to: taskStatus?.data?.find(item => item.id === Number(values.status))?.name
+            }
+          }),
         sendBy: user?.name
       }
     }
@@ -136,7 +153,7 @@ const SidebarAddTasks = (props: SidebarAddUserType) => {
         if (selectedItem) {
           const alreadyUploadedAttachment = selectedItem.attachment
 
-          if (files?.[0] !== alreadyUploadedAttachment) {
+          if (files && files.length > 0 && files?.[0] !== alreadyUploadedAttachment) {
             deleteFile.mutate(alreadyUploadedAttachment, {
               onError: (err: any) => {
                 const errMsg = errorMessageParser(err)
@@ -167,6 +184,7 @@ const SidebarAddTasks = (props: SidebarAddUserType) => {
         ...values,
         user_id: Number(values.user_id),
         id: Number(selectedItem.id),
+        status: Number(values?.status),
         ...(attachments &&
           attachments.length > 0 && {
             attachment: attachments[0]
@@ -208,7 +226,11 @@ const SidebarAddTasks = (props: SidebarAddUserType) => {
       sx={{ '& .MuiDrawer-paper': { width: { xs: 300, sm: 400 } } }}
     >
       <Header>
-        <Typography variant='h6'>{selectedItem ? 'Edit' : 'Add'} Task</Typography>
+        {statusEdit ? (
+          <Typography variant='h6'>Task Status</Typography>
+        ) : (
+          <Typography variant='h6'>{selectedItem ? 'Edit' : 'Add'} Task</Typography>
+        )}
         <IconButton
           size='small'
           onClick={handleClose}
@@ -219,62 +241,96 @@ const SidebarAddTasks = (props: SidebarAddUserType) => {
       </Header>
       <Box sx={{ p: theme => theme.spacing(0, 6, 6) }}>
         <form onSubmit={handleSubmit(onSubmit)}>
-          <FormControl fullWidth sx={{ mb: 4 }}>
-            <Controller
-              name='user_id'
-              control={control}
-              rules={{ required: true }}
-              render={({ field: { value, onChange } }) => (
-                <>
-                  <InputLabel id='status-select-1'>Assign To</InputLabel>
-                  <Select
-                    id='select-status-1'
-                    label='Select Account Status'
-                    labelId='status-select-1'
-                    inputProps={{ placeholder: 'Assign to' }}
-                    value={value}
-                    onChange={onChange}
-                  >
-                    <MenuItem value=''>Assign To</MenuItem>
-                    {users?.data
-                      ?.filter?.(user => user.role !== userRoles['super_admin'])
-                      ?.map(item => (
+          {!statusEdit && (
+            <>
+              <FormControl fullWidth sx={{ mb: 4 }}>
+                <Controller
+                  name='user_id'
+                  control={control}
+                  rules={{ required: true }}
+                  render={({ field: { value, onChange } }) => (
+                    <>
+                      <InputLabel id='status-select-1'>Assign To</InputLabel>
+                      <Select
+                        id='select-status-1'
+                        label='Select Account Status'
+                        labelId='status-select-1'
+                        inputProps={{ placeholder: 'Assign to' }}
+                        value={value}
+                        onChange={onChange}
+                      >
+                        <MenuItem value=''>Assign To</MenuItem>
+                        {users?.data
+                          ?.filter?.(user => user.role !== userRoles['super_admin'])
+                          ?.map(item => (
+                            <MenuItem key={item.id} value={item.id}>
+                              {item.name}
+                            </MenuItem>
+                          ))}
+                      </Select>
+                    </>
+                  )}
+                />
+                {errors.user_id && <ErrorBox error={errors.user_id} />}
+              </FormControl>
+
+              <FormControl fullWidth sx={{ mb: 4 }}>
+                <Controller
+                  name='task'
+                  control={control}
+                  rules={{ required: true }}
+                  render={({ field: { value, onChange } }) => (
+                    <TextField
+                      value={value}
+                      label='Task'
+                      onChange={onChange}
+                      placeholder='Enter task description'
+                      multiline
+                      rows={4}
+                      error={Boolean(errors.task)}
+                    />
+                  )}
+                />
+                {errors.task && <ErrorBox error={errors.task} />}
+              </FormControl>
+
+              <FormControl fullWidth sx={{ mb: 4 }}>
+                <DropzoneWrapper>
+                  <FileUploaderMultiple files={files} setFiles={setFiles} />
+                </DropzoneWrapper>
+              </FormControl>
+            </>
+          )}
+
+          {selectedItem && statusEdit && (
+            <FormControl fullWidth sx={{ mb: 4 }}>
+              <Controller
+                name='status'
+                control={control}
+                rules={{ required: true }}
+                render={({ field: { value, onChange } }) => (
+                  <>
+                    <InputLabel id='status-select-1'>Task Status</InputLabel>
+                    <Select
+                      id='select-status-1'
+                      label='Task Status'
+                      labelId='status-select-1'
+                      inputProps={{ placeholder: 'Assign to' }}
+                      value={value}
+                      onChange={onChange}
+                    >
+                      {taskStatus?.data?.map(item => (
                         <MenuItem key={item.id} value={item.id}>
-                          {item.name}
+                          {item?.name}
                         </MenuItem>
                       ))}
-                  </Select>
-                </>
-              )}
-            />
-            {errors.user_id && <ErrorBox error={errors.user_id} />}
-          </FormControl>
-
-          <FormControl fullWidth sx={{ mb: 4 }}>
-            <Controller
-              name='task'
-              control={control}
-              rules={{ required: true }}
-              render={({ field: { value, onChange } }) => (
-                <TextField
-                  value={value}
-                  label='Task'
-                  onChange={onChange}
-                  placeholder='Enter task description'
-                  multiline
-                  rows={4}
-                  error={Boolean(errors.task)}
-                />
-              )}
-            />
-            {errors.task && <ErrorBox error={errors.task} />}
-          </FormControl>
-
-          <FormControl fullWidth sx={{ mb: 4 }}>
-            <DropzoneWrapper>
-              <FileUploaderMultiple files={files} setFiles={setFiles} />
-            </DropzoneWrapper>
-          </FormControl>
+                    </Select>
+                  </>
+                )}
+              />
+              {errors.status && <ErrorBox error={errors.status} />}
+            </FormControl>
+          )}
 
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
             <Button

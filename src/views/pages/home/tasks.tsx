@@ -9,7 +9,9 @@ import { useState } from 'react'
 import Icon from 'src/@core/components/icon'
 import { TTasks, useGetTasks } from 'src/services/tasks'
 import { getFilesPublicUrl } from '@services/file'
-import { userRoles } from 'src/configs/general'
+import { taskStatus, userRoles } from 'src/configs/general'
+import { CustomChipProps } from '@components/chip/types'
+import CustomChip from 'src/@core/components/mui/chip'
 
 interface CellType {
   row: TTasks['data'][0]
@@ -89,7 +91,35 @@ function TasksView({
       }
     },
     {
-      flex: 0.1,
+      flex: 0.15,
+      minWidth: 190,
+      field: 'Status',
+      headerName: 'Status',
+      renderCell: ({ row }: CellType) => {
+        console.log(row, 'teh jam')
+        let color: CustomChipProps['color'] = 'secondary'
+
+        if (row?.task_status?.id === taskStatus['in progress']) {
+          color = 'warning'
+        }
+
+        if (row?.task_status?.id === taskStatus['in qa']) {
+          color = 'info'
+        }
+
+        if (row?.task_status?.id === taskStatus['qa passed']) {
+          color = 'success'
+        }
+
+        if (row?.task_status?.id === taskStatus['approved for production']) {
+          color = 'primary'
+        }
+
+        return <CustomChip rounded typeof='success' skin='light' label={row?.task_status?.['name']} color={color} />
+      }
+    },
+    {
+      flex: 0.12,
       minWidth: 100,
       sortable: false,
       field: 'actions',

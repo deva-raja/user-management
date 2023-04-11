@@ -2,13 +2,14 @@ import Icon from 'src/@core/components/icon'
 import { getFilesPublicUrl } from '@services/file'
 import { Button } from '@mui/material'
 import { usePatchCollabs } from '@services/task_collab'
-import { collabStatus } from 'src/configs/general'
+import { collabStatus, notificationTypes } from 'src/configs/general'
 import ButtonSpinner from '@components/spinner/ButtonSpinner'
 import useCustomToast from '@components/toast'
 import { errorMessageParser } from '@utils/error'
 import { useQueryClient } from '@tanstack/react-query'
 import { dbRoutes } from 'src/configs/db'
 import { useState } from 'react'
+import CustomChip from 'src/@core/components/mui/chip'
 
 function NotificationActionItems({ notificationAttachment }: { notificationAttachment: string }) {
   const attachmentPublicUrl = getFilesPublicUrl(notificationAttachment)
@@ -106,7 +107,7 @@ function Notification({ notification }: any) {
         <NotificationActionItems notificationAttachment={notification.data.attachment} />
       )}
 
-      {!collabActionResult && notification?.data?.notificationType === 'task_collab_request' && (
+      {!collabActionResult && notification?.data?.notificationType === notificationTypes['task_collab_request'] && (
         <div
           style={{
             display: 'flex',
@@ -151,6 +152,38 @@ function Notification({ notification }: any) {
         >
           Collaboration {collabActionResult}
         </p>
+      )}
+
+      {!collabActionResult && notification?.data?.notificationType === notificationTypes['task_status_change'] && (
+        <div>
+          <div
+            style={{
+              fontSize: '13px',
+              margin: '.5rem 0',
+              display: 'flex',
+              gap: '1rem',
+              alignItems: 'center'
+            }}
+          >
+            <CustomChip
+              rounded
+              typeof='success'
+              skin='light'
+              label={notification?.data?.statusData?.from?.toUpperCase()}
+              color={'secondary'}
+              style={{ padding: '0 1rem' }}
+            />
+            <Icon color='#55516b' fontSize='1.125rem' icon='tabler:arrow-right' />
+            <CustomChip
+              rounded
+              typeof='success'
+              skin='light'
+              label={notification?.data?.statusData?.to?.toUpperCase()}
+              color={'primary'}
+              style={{ padding: '0 1rem' }}
+            />
+          </div>
+        </div>
       )}
 
       <p style={{ fontSize: '11px', color: '#888888' }}>{notification.time}</p>

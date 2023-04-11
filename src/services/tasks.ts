@@ -9,6 +9,7 @@ export type TTasksParams = {
   user_id: number
   task: string
   attachment?: string | null
+  status?: number
 }
 
 export type TTasks = { data: ITasks[] }
@@ -20,7 +21,10 @@ const get = async () => {
 
   // if admin
   if (Number(role) === userRoles['super_admin']) {
-    const { data } = await supabase.from(dbRoutes['tasks']).select(`*, users(*)`).order('id', { ascending: false })
+    const { data } = await supabase
+      .from(dbRoutes['tasks'])
+      .select(`*, users(*), task_status(*)`)
+      .order('id', { ascending: false })
 
     return data as unknown as TTasks['data']
   }
@@ -28,14 +32,14 @@ const get = async () => {
   // if client
   const { data: taskCollabData } = await supabase
     .from(dbRoutes['tasks'])
-    .select(`*, users(*), tasks_collabs!inner (*)`)
+    .select(`*, users(*), task_status(*), tasks_collabs!inner (*)`)
     .order('id', { ascending: false })
     .filter('tasks_collabs.user_id', 'eq', id)
     .filter('tasks_collabs.status', 'eq', collabStatus['accepted'])
 
   const { data } = await supabase
     .from(dbRoutes['tasks'])
-    .select(`*, users(*)`)
+    .select(`*, users(*), task_status(*)`)
     .order('id', { ascending: false })
     .eq('user_id', id)
 

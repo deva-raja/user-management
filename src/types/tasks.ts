@@ -5,6 +5,10 @@ export interface ITasks {
   user_id: number
   attachment?: string
   users: Users
+  task_status: {
+    id: number
+    name: string
+  }
 }
 
 interface Users {

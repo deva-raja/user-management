@@ -26,6 +26,7 @@ const Tasks = () => {
   const removeCollab = useDeleteCollabs()
   const [openTaskDeleteModal, setOpenTaskDeleteModal] = useState<boolean>(false)
   const [openCollabDeleteModal, setOpenCollabDeleteModal] = useState(false)
+  const [statusEdit, setStatusEdit] = useState(false)
 
   const user = JSON.parse(localStorage.getItem('user') as string)
 
@@ -47,7 +48,13 @@ const Tasks = () => {
   }
 
   const TasksRowOptions = ({ item }: { item: TTasks['data'][0] }) => {
-    const handleClick = () => {
+    const handleEdit = (isStatusEdit = false) => {
+      if (isStatusEdit) {
+        setStatusEdit(true)
+      } else {
+        setStatusEdit(false)
+      }
+
       setSelectedItem(item)
       setAddTaskDrawerOpen(!addTaskDrawerOpen)
     }
@@ -67,10 +74,10 @@ const Tasks = () => {
 
     return (
       <>
-        {user?.role === userRoles['super_admin'] ? (
+        {user?.role === userRoles['super_admin'] && (
           <>
             <Tooltip title='edit' placement='top'>
-              <IconButton onClick={handleClick} size='small'>
+              <IconButton onClick={() => handleEdit()} size='small'>
                 <Icon icon='tabler:edit' />
               </IconButton>
             </Tooltip>
@@ -80,22 +87,22 @@ const Tasks = () => {
                 <Icon icon='tabler:trash' />
               </IconButton>
             </Tooltip>
-
-            <Tooltip title='collab' placement='top'>
-              <IconButton onClick={handleCollabOpen} size='small'>
-                <Icon icon='tabler:plus' />
-              </IconButton>
-            </Tooltip>
-          </>
-        ) : (
-          <>
-            <Tooltip title='collab' placement='top'>
-              <IconButton onClick={handleCollabOpen} size='small'>
-                <Icon icon='tabler:plus' />
-              </IconButton>
-            </Tooltip>
           </>
         )}
+
+        <>
+          <Tooltip title='collab' placement='top'>
+            <IconButton onClick={handleCollabOpen} size='small'>
+              <Icon icon='tabler:plus' />
+            </IconButton>
+          </Tooltip>
+
+          <Tooltip title='status' placement='top'>
+            <IconButton onClick={() => handleEdit(true)} size='small'>
+              <Icon icon='tabler:affiliate' />
+            </IconButton>
+          </Tooltip>
+        </>
       </>
     )
   }
@@ -131,7 +138,12 @@ const Tasks = () => {
           />
         )}
 
-        <SidebarAddTasks selectedItem={selectedItem} open={addTaskDrawerOpen} toggle={toggleAddTaskDrawer} />
+        <SidebarAddTasks
+          statusEdit={statusEdit}
+          selectedItem={selectedItem}
+          open={addTaskDrawerOpen}
+          toggle={toggleAddTaskDrawer}
+        />
         <SidebarAddCollab selectedItem={selectedItem} open={collabDrawerOpen} toggle={toggleCollabDrawer} />
 
         <TaskDeleteModal
