@@ -54,6 +54,12 @@ const remove = async ({ id }: { id: number }) => {
   return data
 }
 
+const removeByUserId = async ({ id }: { id: number }) => {
+  const { data } = await supabase.from(dbRoutes['tasks_collabs']).delete().eq('user_id', id)
+
+  return data
+}
+
 export const usePostCollabs = () => {
   return useMutation((data: TCollabsParams) => post(data))
 }
@@ -64,6 +70,10 @@ export const usePatchCollabs = () => {
 
 export const useDeleteCollabs = () => {
   return useMutation(({ id }: { id: number }) => remove({ id }))
+}
+
+export const useDeleteCollabsByUserId = () => {
+  return useMutation(({ id }: { id: number }) => removeByUserId({ id }))
 }
 
 export const useGetCollabs = (taskId?: number) => {

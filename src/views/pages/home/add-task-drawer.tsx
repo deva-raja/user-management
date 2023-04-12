@@ -31,7 +31,7 @@ import { useGetUsers } from '@services/auth'
 import { useSendEngageSpotNotification } from '@services/engagespot'
 import { getFilesPublicUrl, useHandleFileDelete, useHandleFileUpload } from '@services/file'
 import { TTasks, TTasksParams, usePatchTasks, usePostTasks } from '@services/tasks'
-import { useGetAcceptedCollabs } from '@services/task_collab'
+import { useDeleteCollabsByUserId, useGetAcceptedCollabs } from '@services/task_collab'
 import { useGetTaskStatus } from '@services/task_status'
 import DropzoneWrapper from 'src/@core/styles/libs/react-dropzone'
 import { dbRoutes } from 'src/configs/db'
@@ -78,6 +78,7 @@ const SidebarAddTasks = (props: SidebarAddUserType) => {
   const deleteFile = useHandleFileDelete()
   const collabs = useGetAcceptedCollabs(selectedItem?.id)
   const user = useGetUser()
+  const removeCollab = useDeleteCollabsByUserId()
 
   const {
     reset,
@@ -110,7 +111,7 @@ const SidebarAddTasks = (props: SidebarAddUserType) => {
     const collaboratorsEmail = collabs?.data
       ?.map(collab => collab.users.email)
       ?.filter((email: string) => email !== user?.email)
-      
+
     if (!email) return
 
     const attachments = await Promise.all(
@@ -159,13 +160,19 @@ const SidebarAddTasks = (props: SidebarAddUserType) => {
         if (selectedItem) {
           const alreadyUploadedAttachment = selectedItem.attachment
 
+          try {
+            await removeCollab.mutateAsync({ id: values.user_id })
+          } catch (e) {
+            console.log('selected user was not a collaborator of selected task')
+          }
+
           if (files && files.length > 0 && files?.[0] !== alreadyUploadedAttachment) {
-            deleteFile.mutate(alreadyUploadedAttachment, {
-              onError: (err: any) => {
-                const errMsg = errorMessageParser(err)
-                toast.error(errMsg)
-              }
-            })
+            try {
+              await deleteFile.mutateAsync(alreadyUploadedAttachment)
+            } catch (err) {
+              const errMsg = errorMessageParser(err)
+              toast.error(errMsg)
+            }
           }
         }
 
@@ -340,15 +347,25 @@ const SidebarAddTasks = (props: SidebarAddUserType) => {
 
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
             <Button
-              disabled={post.isLoading || patch.isLoading || handleFileUpload.isLoading || deleteFile.isLoading}
+              disabled={
+                post.isLoading ||
+                patch.isLoading ||
+                handleFileUpload.isLoading ||
+                deleteFile.isLoading ||
+                removeCollab.isLoading ||
+                sendEngageSpotNotification.isLoading
+              }
               type='submit'
               variant='contained'
               sx={{ mr: 3 }}
             >
               Submit
-              {(post.isLoading || patch.isLoading || handleFileUpload.isLoading || deleteFile.isLoading) && (
-                <ButtonSpinner />
-              )}
+              {(post.isLoading ||
+                patch.isLoading ||
+                handleFileUpload.isLoading ||
+                deleteFile.isLoading ||
+                removeCollab.isLoading ||
+                sendEngageSpotNotification.isLoading) && <ButtonSpinner />}
             </Button>
             <Button variant='outlined' color='secondary' onClick={handleClose}>
               Cancel
