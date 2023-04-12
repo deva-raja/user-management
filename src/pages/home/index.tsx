@@ -16,6 +16,8 @@ import { dbRoutes } from 'src/configs/db'
 import { userRoles } from 'src/configs/general'
 import TaskDeleteModal from 'src/pages/home/task-delete-modal'
 import CollabDeleteModal from './collab-delete-modal'
+import { useGetTaskComments } from '@services/task_comments'
+import TaskChat from '@views/pages/home/task-chat'
 
 const Tasks = () => {
   const [addTaskDrawerOpen, setAddTaskDrawerOpen] = useState<boolean>(false)
@@ -32,6 +34,7 @@ const Tasks = () => {
 
   const [taskView, setTaskView] = useState(true)
   const [collabView, setCollabView] = useState(false)
+  const [chatView, setChatView] = useState(false)
 
   const toggleAddTaskDrawer = () => {
     setSelectedItem(null)
@@ -66,8 +69,6 @@ const Tasks = () => {
 
     const handleCollabOpen = () => {
       setSelectedItem(item)
-
-      // setCollabDrawerOpen(true)
       setTaskView(false)
       setCollabView(true)
     }
@@ -124,6 +125,9 @@ const Tasks = () => {
     )
   }
 
+  const getTaskComments = useGetTaskComments(45)
+  console.log(getTaskComments.data, 'tasks')
+
   return (
     <>
       <Grid container spacing={6.5}>
@@ -137,6 +141,8 @@ const Tasks = () => {
             selectedItem={selectedItem}
           />
         )}
+
+        {chatView && <TaskChat />}
 
         <SidebarAddTasks
           statusEdit={statusEdit}

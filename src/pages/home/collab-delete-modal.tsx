@@ -32,7 +32,7 @@ const CollabDeleteModal = ({
     }
 
     const email = itemToRemove?.users.email
-    const user = JSON.parse(localStorage.getItem('user') as string)
+    const user = JSON.parse(localStorage.getItem('user') as string) 
     if (!email) return
 
     const notificationData = {
