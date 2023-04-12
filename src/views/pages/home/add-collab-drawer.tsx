@@ -27,7 +27,7 @@ import { InputLabel, MenuItem, Select } from '@mui/material'
 import { useGetUsers } from '@services/auth'
 import { useSendEngageSpotNotification } from '@services/engagespot'
 import { TTasks, TTasksParams } from '@services/tasks'
-import { usePostCollabs } from '@services/task_collab'
+import { useGetCollabs, usePostCollabs } from '@services/task_collab'
 import { dbRoutes } from 'src/configs/db'
 import { collabStatus, engageSpotTemplates, notificationTypes, userRoles } from 'src/configs/general'
 import { useGetUser } from 'src/hooks/useGetUser'
@@ -62,7 +62,7 @@ const SidebarAddCollab = (props: SidebarAddUserType) => {
   const users = useGetUsers()
   const sendEngageSpotNotification = useSendEngageSpotNotification()
   const user = useGetUser()
-
+  const collabs = useGetCollabs()
 
   // ** Hooks
   const {
@@ -169,6 +169,7 @@ const SidebarAddCollab = (props: SidebarAddUserType) => {
                     {users?.data
                       ?.filter?.(user => user.role !== userRoles['super_admin'])
                       ?.filter?.(user => user.email !== selectedItem?.['users']?.['email'])
+                      ?.filter(user => !collabs.data?.some(collab => collab.user_id === user.id))
                       ?.map(item => (
                         <MenuItem key={item.id} value={item.id}>
                           {item.name}
