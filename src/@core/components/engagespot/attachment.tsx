@@ -2,6 +2,7 @@ import ButtonSpinner from '@components/spinner/ButtonSpinner'
 import useCustomToast from '@components/toast'
 import { Button, Typography } from '@mui/material'
 import Box from '@mui/material/Box'
+import { useSendEngageSpotNotification } from '@services/engagespot'
 import { getFilesPublicUrl } from '@services/file'
 import { usePatchCollabs } from '@services/task_collab'
 import { useQueryClient } from '@tanstack/react-query'
@@ -11,7 +12,8 @@ import { useState } from 'react'
 import Icon from 'src/@core/components/icon'
 import CustomChip from 'src/@core/components/mui/chip'
 import { dbRoutes } from 'src/configs/db'
-import { collabStatus, notificationTypes } from 'src/configs/general'
+import { collabStatus, engageSpotTemplates, notificationTypes, recipientIds } from 'src/configs/general'
+import { useGetUser } from 'src/hooks/useGetUser'
 
 function NotificationActionItems({ notificationAttachment }: { notificationAttachment: string }) {
   const attachmentPublicUrl = getFilesPublicUrl(notificationAttachment)
@@ -47,6 +49,8 @@ function Notification({ notification }: any) {
   const queryClient = useQueryClient()
   const [collabActionResult, setCollabActionResult] = useState('')
   const [replySend, setReplySend] = useState(false)
+  const sendEngageSpotNotification = useSendEngageSpotNotification()
+  const user = useGetUser()
 
   const finalActions = {
     onError: (err: any) => {
@@ -55,35 +59,82 @@ function Notification({ notification }: any) {
     }
   }
 
+  const sendNotification = ({
+    title,
+    message,
+    notificationType,
+    sendBy,
+    recipients
+  }: {
+    title: string
+    message: string
+    notificationType: string
+    sendBy: string
+    recipients: string[]
+  }) => {
+    const notificationData = {
+      recipients,
+      notification: {
+        templateId: engageSpotTemplates['tasks']
+      },
+      data: {
+        title,
+        message,
+        notificationType,
+        sendBy
+      }
+    }
+
+    console.log('firing')
+
+    return sendEngageSpotNotification.mutate(notificationData)
+  }
+
   const handleCollabAction = (type: 'accepted' | 'rejected') => {
     if (acceptPatchCollabs.isLoading || rejectPatchCollabs.isLoading) return
 
-    if (type === 'accepted')
-      acceptPatchCollabs.mutate(
+    if (type === 'accepted') {
+      return acceptPatchCollabs.mutate(
         { id: notification?.data?.task_collab?.[0]?.id, status: collabStatus[type] },
         {
           onSuccess: () => {
             toast.success(`accepted successfull`)
             queryClient.invalidateQueries([dbRoutes.tasks])
             setCollabActionResult('accepted')
+            sendNotification({
+              title: 'Accepted Collaboration for the task',
+              message: notification?.data?.message,
+              notificationType: notificationTypes['task_collab_accepted'],
+              sendBy: user?.name,
+              recipients: [notification?.data?.task?.users?.email, recipientIds['admin']]
+            })
           },
           onError: finalActions['onError']
         }
       )
+    }
 
-    if (type === 'rejected')
-      rejectPatchCollabs.mutate(
+    if (type === 'rejected') {
+      return rejectPatchCollabs.mutate(
         { id: notification?.data?.task_collab?.[0]?.id, status: collabStatus[type] },
         {
           onSuccess: () => {
             toast.success(`rejected successfull`)
             queryClient.invalidateQueries([dbRoutes.tasks])
             setCollabActionResult('rejected')
+            sendNotification({
+              title: 'Rejected Collaboration for the task',
+              message: notification?.data?.message,
+              notificationType: notificationTypes['task_collab_rejected'],
+              sendBy: user?.name,
+              recipients: [notification?.data?.task?.users?.email, recipientIds['admin']]
+            })
           },
 
           onError: finalActions['onError']
         }
       )
+    }
   }
 
   return (

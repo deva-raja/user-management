@@ -2,6 +2,7 @@ import DeleteModalBody from '@components/modals/delete-modal-body'
 import { useSendEngageSpotNotification } from '@services/engagespot'
 import { useHandleFileDelete } from '@services/file'
 import { TTasks } from '@services/tasks'
+import { useGetAcceptedCollabs } from '@services/task_collab'
 import { UseMutationResult, useQueryClient } from '@tanstack/react-query'
 import { errorMessageParser } from 'src/@core/utils/error'
 import { engageSpotTemplates, notificationTypes } from 'src/configs/general'
@@ -27,6 +28,7 @@ const TaskDeleteModal = ({
   const sendEngageSpotNotification = useSendEngageSpotNotification()
   const deleteFile = useHandleFileDelete()
   const user = useGetUser()
+  const collabs = useGetAcceptedCollabs(itemToRemove?.id)
 
   const handleSubmit = () => {
     if (!itemToRemove) return
@@ -36,10 +38,12 @@ const TaskDeleteModal = ({
     }
 
     const email = itemToRemove?.users.email
+    const collaboratorsEmail = collabs?.data?.map(collab => collab.users.email)
+
     if (!email) return
 
     const notificationData = {
-      recipients: [email],
+      recipients: [email, ...(collaboratorsEmail ?? [])],
       notification: {
         templateId: engageSpotTemplates['tasks']
       },

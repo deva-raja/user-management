@@ -193,6 +193,7 @@ function TasksView({
         )}
 
         <DataGrid
+          loading={tasks.isLoading}
           autoHeight
           getEstimatedRowHeight={() => 80}
           getRowHeight={() => 'auto'}

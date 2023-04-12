@@ -83,8 +83,6 @@ const SidebarAddCollab = (props: SidebarAddUserType) => {
 
     const finalActions = {
       onSuccess: async (response: any) => {
-        console.log(response, 'teh response')
-
         const notificationData = {
           recipients: [email],
           notification: {
@@ -95,7 +93,8 @@ const SidebarAddCollab = (props: SidebarAddUserType) => {
             message: selectedItem?.task,
             notificationType: notificationTypes['task_collab_request'],
             sendBy: user?.name,
-            task_collab: response
+            task_collab: response,
+            task: selectedItem
           }
         }
 

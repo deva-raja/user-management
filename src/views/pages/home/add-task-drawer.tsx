@@ -107,7 +107,10 @@ const SidebarAddTasks = (props: SidebarAddUserType) => {
   const onSubmit = async (values: TTasksParams) => {
     const selectedUser = users?.data?.find(item => item.id === Number(values.user_id))
     const email = selectedUser?.email
-    const collaboratorsEmail = collabs?.data?.map(collab => collab.users.email)
+    const collaboratorsEmail = collabs?.data
+      ?.map(collab => collab.users.email)
+      ?.filter((email: string) => email !== user?.email)
+      
     if (!email) return
 
     const attachments = await Promise.all(

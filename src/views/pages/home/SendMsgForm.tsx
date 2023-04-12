@@ -80,16 +80,14 @@ const SendMsgForm = ({
         comment: msg
       }
 
+      setReplySend?.(true)
+
       post.mutate(data, {
         onSuccess: () => {
           queryClient.invalidateQueries([dbRoutes['task_comments'], selectedItem?.id])
           setMsg('')
 
-          sendEngageSpotNotification.mutate(notificationData, {
-            onSuccess: () => {
-              setReplySend?.(true)
-            }
-          })
+          sendEngageSpotNotification.mutate(notificationData)
         },
         onError: err => {
           const errMsg = errorMessageParser(err)
@@ -166,7 +164,7 @@ const SendMsgForm = ({
         )}
 
         {isInNotification && (
-          <button type='submit'>
+          <button disabled={post.isLoading} type='submit'>
             <Icon
               style={{
                 transform: 'rotate(45deg)',

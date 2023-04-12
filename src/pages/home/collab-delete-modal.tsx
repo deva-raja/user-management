@@ -42,7 +42,8 @@ const CollabDeleteModal = ({
         templateId: engageSpotTemplates['tasks']
       },
       data: {
-        title: `Removed the task`,
+        title: `Unallocated from the task`,
+        message: itemToRemove?.tasks,
         notificationType: notificationTypes['task_deleted'],
         sendBy: user?.name
       }
