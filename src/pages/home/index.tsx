@@ -127,6 +127,9 @@ const Tasks = () => {
   }
 
   const CollabRowOptions = ({ item }: { item: ITaskCollabs }) => {
+    console.log({ item, user })
+    const taskOwner = item?.tasks.user_id === user.id
+
     const handleDeleteOpen = () => {
       setSelectedCollab(item)
       setOpenCollabDeleteModal(true)
@@ -134,11 +137,13 @@ const Tasks = () => {
 
     return (
       <>
-        <Tooltip title='delete' placement='top'>
-          <IconButton onClick={handleDeleteOpen} size='small'>
-            <Icon icon='tabler:trash' />
-          </IconButton>
-        </Tooltip>
+        {(taskOwner || user.role === userRoles['super_admin']) && (
+          <Tooltip title='delete' placement='top'>
+            <IconButton onClick={handleDeleteOpen} size='small'>
+              <Icon icon='tabler:trash' />
+            </IconButton>
+          </Tooltip>
+        )}
       </>
     )
   }
