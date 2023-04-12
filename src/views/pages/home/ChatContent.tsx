@@ -1,9 +1,10 @@
 import Box from '@mui/material/Box'
 import Typography from '@mui/material/Typography'
+import { TTasks } from '@services/tasks'
 import ChatLog from './ChatLog'
 import SendMsgForm from './SendMsgForm'
 
-const ChatContent = () => {
+const ChatContent = ({ selectedItem }: { selectedItem: null | TTasks['data'][0] }) => {
   const renderContent = () => {
     return (
       <Box
@@ -29,14 +30,14 @@ const ChatContent = () => {
             <Box sx={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
               <Box sx={{ display: 'flex', flexDirection: 'column' }}>
                 <Typography sx={{ fontWeight: 500 }}>{'Comments'}</Typography>
-                <Typography sx={{ color: 'text.disabled' }}>{`Task - Fix comments`}</Typography>
+                <Typography sx={{ color: 'text.disabled' }}>{`Task - ${selectedItem?.task}`}</Typography>
               </Box>
             </Box>
           </Box>
         </Box>
 
-        <ChatLog />
-        <SendMsgForm />
+        <ChatLog selectedItem={selectedItem} />
+        <SendMsgForm selectedItem={selectedItem} />
       </Box>
     )
   }

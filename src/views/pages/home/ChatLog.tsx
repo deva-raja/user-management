@@ -2,6 +2,7 @@ import { useMediaQuery } from '@mui/material'
 import Box from '@mui/material/Box'
 import { styled, useTheme } from '@mui/material/styles'
 import Typography from '@mui/material/Typography'
+import { TTasks } from '@services/tasks'
 import { useGetTaskComments } from '@services/task_comments'
 import { ReactNode, Ref, useEffect, useRef } from 'react'
 import PerfectScrollbarComponent, { ScrollBarProps } from 'react-perfect-scrollbar'
@@ -13,13 +14,13 @@ const PerfectScrollbar = styled(PerfectScrollbarComponent)<ScrollBarProps & { re
   padding: theme.spacing(5)
 }))
 
-const ChatLog = () => {
+const ChatLog = ({ selectedItem }: { selectedItem: null | TTasks['data'][0] }) => {
   // ** Props
   const theme = useTheme()
   const hidden = useMediaQuery(theme.breakpoints.down('lg'))
 
   const user = JSON.parse(localStorage.getItem('user') as string)
-  const getTaskComments = useGetTaskComments(45)
+  const getTaskComments = useGetTaskComments(selectedItem?.id)
   const data = getTaskComments.data
 
   // ** Ref
@@ -80,8 +81,6 @@ const ChatLog = () => {
 
       if (index === chatLog.length - 1) formattedChatLog.push(msgGroup)
     })
-
-    console.log(formattedChatLog, 'teh chat log')
 
     return formattedChatLog
   }
@@ -176,13 +175,20 @@ const ChatLog = () => {
   const ScrollWrapper = ({ children }: { children: ReactNode }) => {
     if (hidden) {
       return (
-        <Box ref={chatArea} sx={{ p: 5, height: '100%', overflowY: 'auto', overflowX: 'hidden' }}>
+        <Box
+          ref={chatArea}
+          sx={{ p: 5, height: '100%', minHeight: '50vh', maxHeight: '50vh', overflowY: 'auto', overflowX: 'hidden' }}
+        >
           {children}
         </Box>
       )
     } else {
       return (
-        <PerfectScrollbar ref={chatArea} options={{ wheelPropagation: false }}>
+        <PerfectScrollbar
+          style={{ minHeight: '50vh', maxHeight: '50vh', overflowY: 'auto' }}
+          ref={chatArea}
+          options={{ wheelPropagation: false }}
+        >
           {children}
         </PerfectScrollbar>
       )

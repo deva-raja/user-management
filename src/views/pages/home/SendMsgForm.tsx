@@ -3,6 +3,14 @@ import Box, { BoxProps } from '@mui/material/Box'
 import Button from '@mui/material/Button'
 import { styled } from '@mui/material/styles'
 import TextField from '@mui/material/TextField'
+import { usePostTaskComment } from '@services/task_comments'
+import { useQueryClient } from '@tanstack/react-query'
+import useCustomToast from '@components/toast'
+import { errorMessageParser } from '@utils/error'
+import { TTasks } from '@services/tasks'
+import { dbRoutes } from 'src/configs/db'
+import Icon from 'src/@core/components/icon'
+import { useGetUser } from 'src/hooks/useGetUser'
 
 // ** Styled Components
 const ChatFormWrapper = styled(Box)<BoxProps>(({ theme }) => ({
@@ -19,14 +27,36 @@ const Form = styled('form')(({ theme }) => ({
   padding: theme.spacing(0, 5, 5)
 }))
 
-const SendMsgForm = () => {
+const SendMsgForm = ({ selectedItem }: { selectedItem: null | TTasks['data'][0] }) => {
+  const user = useGetUser()
   const [msg, setMsg] = useState<string>('')
+  const post = usePostTaskComment()
+  const queryClient = useQueryClient()
+  const toast = useCustomToast()
 
   const handleSendMsg = (e: SyntheticEvent) => {
     e.preventDefault()
 
-    // do api call to send message and then invalidate
-    setMsg('')
+    if (!selectedItem) return toast.error('Please select a task first')
+
+    if (msg.trim().length) {
+      const data = {
+        user_id: user.id,
+        task_id: selectedItem.id,
+        comment: msg
+      }
+
+      post.mutate(data, {
+        onSuccess: () => {
+          queryClient.invalidateQueries([dbRoutes['task_comments'], selectedItem?.id])
+          setMsg('')
+        },
+        onError: err => {
+          const errMsg = errorMessageParser(err)
+          toast.error(errMsg)
+        }
+      })
+    }
   }
 
   return (
@@ -37,7 +67,7 @@ const SendMsgForm = () => {
             fullWidth
             value={msg}
             size='small'
-            placeholder='Type your message here…'
+            placeholder='Enter your comment…'
             onChange={e => setMsg(e.target.value)}
             sx={{
               '& .MuiOutlinedInput-root': {
@@ -51,8 +81,9 @@ const SendMsgForm = () => {
           />
         </Box>
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          <Button type='submit' variant='contained'>
+          <Button disabled={post.isLoading} type='submit' variant='contained'>
             Send
+            <Icon style={{ transform: 'rotate(45deg)', marginLeft: '0.5rem' }} fontSize='1.125rem' icon='tabler:send' />
           </Button>
         </Box>
       </ChatFormWrapper>

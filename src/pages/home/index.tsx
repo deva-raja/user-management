@@ -11,13 +11,12 @@ import { ITaskCollabs } from '@type/task_collabs'
 import SidebarAddCollab from '@views/pages/home/add-collab-drawer'
 import SidebarAddTasks from '@views/pages/home/add-task-drawer'
 import CollabView from '@views/pages/home/collabs'
+import TaskChat from '@views/pages/home/task-chat'
 import TasksView from '@views/pages/home/tasks'
 import { dbRoutes } from 'src/configs/db'
 import { userRoles } from 'src/configs/general'
 import TaskDeleteModal from 'src/pages/home/task-delete-modal'
 import CollabDeleteModal from './collab-delete-modal'
-import { useGetTaskComments } from '@services/task_comments'
-import TaskChat from '@views/pages/home/task-chat'
 
 const Tasks = () => {
   const [addTaskDrawerOpen, setAddTaskDrawerOpen] = useState<boolean>(false)
@@ -47,6 +46,13 @@ const Tasks = () => {
 
   const handleCollabBack = () => {
     setTaskView(true)
+    setChatView(false)
+    setCollabView(false)
+  }
+
+  const handleChatBack = () => {
+    setTaskView(true)
+    setChatView(false)
     setCollabView(false)
   }
 
@@ -71,6 +77,12 @@ const Tasks = () => {
       setSelectedItem(item)
       setTaskView(false)
       setCollabView(true)
+    }
+
+    const handleChatOpen = () => {
+      setSelectedItem(item)
+      setTaskView(false)
+      setChatView(true)
     }
 
     return (
@@ -103,6 +115,12 @@ const Tasks = () => {
               <Icon icon='tabler:affiliate' />
             </IconButton>
           </Tooltip>
+
+          <Tooltip title='comments' placement='top'>
+            <IconButton onClick={() => handleChatOpen()} size='small'>
+              <Icon icon='tabler:messages' />
+            </IconButton>
+          </Tooltip>
         </>
       </>
     )
@@ -125,9 +143,6 @@ const Tasks = () => {
     )
   }
 
-  const getTaskComments = useGetTaskComments(45)
-  console.log(getTaskComments.data, 'tasks')
-
   return (
     <>
       <Grid container spacing={6.5}>
@@ -142,7 +157,7 @@ const Tasks = () => {
           />
         )}
 
-        {chatView && <TaskChat />}
+        {chatView && <TaskChat handleBack={handleChatBack} selectedItem={selectedItem} />}
 
         <SidebarAddTasks
           statusEdit={statusEdit}
