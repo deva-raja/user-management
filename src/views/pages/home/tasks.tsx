@@ -94,7 +94,7 @@ function TasksView({
     },
     {
       flex: 0.15,
-      minWidth: 190,
+      minWidth: 150,
       field: 'Collaborators',
       headerName: 'Collaborators',
       renderCell: ({ row }: CellType) => {
@@ -160,7 +160,7 @@ function TasksView({
     },
     {
       flex: 0.15,
-      minWidth: 100,
+      minWidth: 150,
       sortable: false,
       field: 'actions',
       headerName: 'Actions',

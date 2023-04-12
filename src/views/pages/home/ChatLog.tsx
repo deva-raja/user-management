@@ -31,10 +31,10 @@ const ChatLog = ({ selectedItem }: { selectedItem: null | TTasks['data'][0] }) =
     if (chatArea.current) {
       if (hidden) {
         // @ts-ignore
-        chatArea.current.scrollTop = Number.MAX_SAFE_INTEGER
+        chatArea.current?.scrollIntoView({ behavior: 'smooth' })
       } else {
         // @ts-ignore
-        chatArea.current._container.scrollTop = Number.MAX_SAFE_INTEGER
+        chatArea.current._container.scrollTop = 1000
       }
     }
   }
@@ -176,10 +176,10 @@ const ChatLog = ({ selectedItem }: { selectedItem: null | TTasks['data'][0] }) =
     if (hidden) {
       return (
         <Box
-          ref={chatArea}
           sx={{ p: 5, height: '100%', minHeight: '50vh', maxHeight: '50vh', overflowY: 'auto', overflowX: 'hidden' }}
         >
           {children}
+          <div ref={chatArea} />
         </Box>
       )
     } else {

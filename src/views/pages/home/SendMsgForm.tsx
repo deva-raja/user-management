@@ -48,11 +48,14 @@ const SendMsgForm = ({
 
   const handleSendMsg = (e: SyntheticEvent) => {
     e.preventDefault()
-    const collaboratorsEmail = collabs?.data?.map(collab => collab.users.email)
+    const collaboratorsEmail = collabs?.data
+      ?.map(collab => collab.users.email)
+      ?.filter((email: string) => email !== user?.email)
 
     const notificationData = {
       recipients: [
         ...(user.role !== userRoles['super_admin'] ? [recipientIds['admin']] : []),
+        ...(user.id !== selectedItem?.user_id && selectedItem?.users.email ? [selectedItem?.users.email] : []),
         ...(collaboratorsEmail ?? [])
       ],
       notification: {
