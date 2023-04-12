@@ -45,6 +45,7 @@ import bcrypt from 'bcryptjs'
 import { userRoles } from 'src/configs/general'
 import { usePostRegister } from '@services/auth'
 import { useCreateEngageSpotUser } from '@services/engagespot'
+import { useAuth } from 'src/hooks/useAuth'
 
 const defaultValues = {
   email: '',
@@ -129,6 +130,7 @@ const Register = () => {
     resolver: yupResolver(schema)
   })
 
+  const auth = useAuth()
   const router = useRouter()
   const toast = useCustomToast()
   const register = usePostRegister()
@@ -151,12 +153,19 @@ const Register = () => {
     }
 
     register.mutate(values, {
-      onSuccess: () => {
+      onSuccess: data => {
+        const user: any = data?.[0]
+        localStorage.setItem('user', JSON.stringify(user))
+        auth.login(values)
+
         return createEngageSpotUser.mutate(engageSpotData, {
           onSuccess: () => {
-            router.push('/login')
+            router.push('/home')
           },
-          onError: (err) => console.log(err, 'te jam error')
+          onError: err => {
+            const errMsg = errorMessageParser(err)
+            toast.error(errMsg)
+          }
         })
       },
       onError: error => {
