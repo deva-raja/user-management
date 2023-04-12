@@ -4,6 +4,7 @@ import { UseMutationResult, useQueryClient } from '@tanstack/react-query'
 import { ITaskCollabs } from '@type/task_collabs'
 import { errorMessageParser } from 'src/@core/utils/error'
 import { engageSpotTemplates, notificationTypes } from 'src/configs/general'
+import { useGetUser } from 'src/hooks/useGetUser'
 import useCustomToast from '../../@core/components/toast'
 
 const CollabDeleteModal = ({
@@ -23,6 +24,7 @@ const CollabDeleteModal = ({
   const handleClose = () => setOpen(false)
   const queryClient = useQueryClient()
   const sendEngageSpotNotification = useSendEngageSpotNotification()
+  const user = useGetUser()
 
   const handleSubmit = () => {
     if (!itemToRemove) return
@@ -32,7 +34,6 @@ const CollabDeleteModal = ({
     }
 
     const email = itemToRemove?.users.email
-    const user = JSON.parse(localStorage.getItem('user') as string) 
     if (!email) return
 
     const notificationData = {

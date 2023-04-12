@@ -13,6 +13,7 @@ import { useState } from 'react'
 import Icon from 'src/@core/components/icon'
 import CustomChip from 'src/@core/components/mui/chip'
 import { collabStatus, userRoles } from 'src/configs/general'
+import { useGetUser } from 'src/hooks/useGetUser'
 import { TTasks } from 'src/services/tasks'
 
 interface CellType {
@@ -33,7 +34,7 @@ function CollabView({
   const taskId = selectedItem?.id
   const collabs = useGetCollabs(taskId)
   const [pageSize, setPageSize] = useState<number>(10)
-  const user = JSON.parse(localStorage.getItem('user') as string)
+  const user = useGetUser()
   const taskOwner = selectedItem?.users.id === user.id
 
   const columns = [

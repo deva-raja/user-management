@@ -14,6 +14,7 @@ import { Engagespot } from '@engagespot/react-component'
 import { useEffect, useState } from 'react'
 import ModeToggler from 'src/@core/layouts/components/shared-components/ModeToggler'
 import UserDropdown from 'src/@core/layouts/components/shared-components/UserDropdown'
+import { useGetUser } from 'src/hooks/useGetUser'
 
 interface Props {
   hidden: boolean
@@ -26,12 +27,12 @@ const AppBarContent = (props: Props) => {
   // ** Props
   const { hidden, settings, saveSettings, toggleNavVisibility } = props
   const [uniqueId, setUniqueId] = useState('')
+  const user = useGetUser()
 
   useEffect(() => {
-    const user = JSON.parse(localStorage.getItem('user') as string)
     const email = user?.email
     setUniqueId(email ?? '')
-  }, [])
+  }, [user])
 
   const theme = {
     colors: {

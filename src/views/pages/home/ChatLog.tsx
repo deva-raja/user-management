@@ -8,6 +8,7 @@ import { ReactNode, Ref, useEffect, useRef } from 'react'
 import PerfectScrollbarComponent, { ScrollBarProps } from 'react-perfect-scrollbar'
 import CustomAvatar from 'src/@core/components/mui/avatar'
 import { getInitials } from 'src/@core/utils/get-initials'
+import { useGetUser } from 'src/hooks/useGetUser'
 import { ChatLogChatType, FormattedChatsType, ITaskChat, MessageGroupType } from 'src/types/chat'
 
 const PerfectScrollbar = styled(PerfectScrollbarComponent)<ScrollBarProps & { ref: Ref<unknown> }>(({ theme }) => ({
@@ -18,8 +19,7 @@ const ChatLog = ({ selectedItem }: { selectedItem: null | TTasks['data'][0] }) =
   // ** Props
   const theme = useTheme()
   const hidden = useMediaQuery(theme.breakpoints.down('lg'))
-
-  const user = JSON.parse(localStorage.getItem('user') as string)
+  const user = useGetUser()
   const getTaskComments = useGetTaskComments(selectedItem?.id)
   const data = getTaskComments.data
 

@@ -17,6 +17,7 @@ import { dbRoutes } from 'src/configs/db'
 import { userRoles } from 'src/configs/general'
 import TaskDeleteModal from 'src/pages/home/task-delete-modal'
 import CollabDeleteModal from './collab-delete-modal'
+import { useGetUser } from 'src/hooks/useGetUser'
 
 const Tasks = () => {
   const [addTaskDrawerOpen, setAddTaskDrawerOpen] = useState<boolean>(false)
@@ -28,8 +29,7 @@ const Tasks = () => {
   const [openTaskDeleteModal, setOpenTaskDeleteModal] = useState<boolean>(false)
   const [openCollabDeleteModal, setOpenCollabDeleteModal] = useState(false)
   const [statusEdit, setStatusEdit] = useState(false)
-
-  const user = JSON.parse(localStorage.getItem('user') as string)
+  const user = useGetUser()
 
   const [taskView, setTaskView] = useState(true)
   const [collabView, setCollabView] = useState(false)

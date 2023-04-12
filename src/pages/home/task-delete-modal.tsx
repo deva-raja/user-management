@@ -5,6 +5,7 @@ import { TTasks } from '@services/tasks'
 import { UseMutationResult, useQueryClient } from '@tanstack/react-query'
 import { errorMessageParser } from 'src/@core/utils/error'
 import { engageSpotTemplates, notificationTypes } from 'src/configs/general'
+import { useGetUser } from 'src/hooks/useGetUser'
 import useCustomToast from '../../@core/components/toast'
 
 const TaskDeleteModal = ({
@@ -25,6 +26,7 @@ const TaskDeleteModal = ({
   const queryClient = useQueryClient()
   const sendEngageSpotNotification = useSendEngageSpotNotification()
   const deleteFile = useHandleFileDelete()
+  const user = useGetUser()
 
   const handleSubmit = () => {
     if (!itemToRemove) return
@@ -34,7 +36,6 @@ const TaskDeleteModal = ({
     }
 
     const email = itemToRemove?.users.email
-    const user = JSON.parse(localStorage.getItem('user') as string)
     if (!email) return
 
     const notificationData = {

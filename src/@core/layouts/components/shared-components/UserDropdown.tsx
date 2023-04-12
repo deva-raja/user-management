@@ -1,18 +1,18 @@
 // ** React Imports
-import { useState, SyntheticEvent, Fragment, useEffect } from 'react'
+import { Fragment, SyntheticEvent, useState } from 'react'
 
 // ** Next Import
 import { useRouter } from 'next/router'
 
 // ** MUI Imports
-import Box from '@mui/material/Box'
-import Menu from '@mui/material/Menu'
-import Badge from '@mui/material/Badge'
 import Avatar from '@mui/material/Avatar'
+import Badge from '@mui/material/Badge'
+import Box from '@mui/material/Box'
 import Divider from '@mui/material/Divider'
+import Menu from '@mui/material/Menu'
+import MenuItem, { MenuItemProps } from '@mui/material/MenuItem'
 import { styled } from '@mui/material/styles'
 import Typography from '@mui/material/Typography'
-import MenuItem, { MenuItemProps } from '@mui/material/MenuItem'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
@@ -21,10 +21,10 @@ import Icon from 'src/@core/components/icon'
 import { useAuth } from 'src/hooks/useAuth'
 
 // ** Type Imports
-import { Settings } from 'src/@core/context/settingsContext'
 import { useQueryClient } from '@tanstack/react-query'
+import { Settings } from 'src/@core/context/settingsContext'
 import { userRoles } from 'src/configs/general'
-import { IUser } from '@services/auth'
+import { useGetUser } from 'src/hooks/useGetUser'
 
 interface Props {
   settings: Settings
@@ -54,12 +54,7 @@ const UserDropdown = (props: Props) => {
 
   // ** States
   const [anchorEl, setAnchorEl] = useState<Element | null>(null)
-  const [user, setUser] = useState<IUser | null>(null)
-
-  useEffect(() => {
-    const user = JSON.parse(localStorage.getItem('user') as string)
-    setUser(user)
-  }, [])
+  const user = useGetUser()
 
   // ** Hooks
   const router = useRouter()

@@ -30,6 +30,7 @@ import { TTasks, TTasksParams } from '@services/tasks'
 import { usePostCollabs } from '@services/task_collab'
 import { dbRoutes } from 'src/configs/db'
 import { collabStatus, engageSpotTemplates, notificationTypes, userRoles } from 'src/configs/general'
+import { useGetUser } from 'src/hooks/useGetUser'
 
 interface SidebarAddUserType {
   open: boolean
@@ -60,7 +61,8 @@ const SidebarAddCollab = (props: SidebarAddUserType) => {
   const queryClient = useQueryClient()
   const users = useGetUsers()
   const sendEngageSpotNotification = useSendEngageSpotNotification()
-  const user = JSON.parse(localStorage.getItem('user') as string)
+  const user = useGetUser()
+
 
   // ** Hooks
   const {
