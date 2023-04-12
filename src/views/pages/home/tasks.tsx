@@ -46,8 +46,8 @@ function TasksView({
       }
     },
     {
-      flex: 0.15,
-      minWidth: 190,
+      flex: 0.1,
+      minWidth: 150,
       field: 'Assigned To',
       headerName: 'Assigned To',
       renderCell: ({ row }: CellType) => {
@@ -159,7 +159,7 @@ function TasksView({
       }
     },
     {
-      flex: 0.12,
+      flex: 0.15,
       minWidth: 100,
       sortable: false,
       field: 'actions',

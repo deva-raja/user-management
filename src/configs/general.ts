@@ -4,7 +4,8 @@ export const userRoles = {
 }
 
 export const engageSpotTemplates = {
-  tasks: 8496
+  tasks: 8496,
+  comments: 8501
 }
 
 export const collabStatus = {
@@ -25,12 +26,13 @@ export const notificationTypes = {
   task_assigned: 'task_assigned',
   task_edited: 'task_edited',
   task_deleted: 'task_deleted',
+  task_comment: 'task_comment',
   task_status_change: 'task_status_change',
   task_collab_request: 'task_collab_request',
   task_collab_accepted: 'task_collab_accepted',
   task_collab_rejected: 'task_collab_rejected'
 }
 
-export const recipientId = {
+export const recipientIds = {
   admin: 'admin@gmail.com'
 }

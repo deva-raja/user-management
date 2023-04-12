@@ -1,10 +1,12 @@
 import ButtonSpinner from '@components/spinner/ButtonSpinner'
 import useCustomToast from '@components/toast'
-import { Button } from '@mui/material'
+import { Button, Typography } from '@mui/material'
+import Box from '@mui/material/Box'
 import { getFilesPublicUrl } from '@services/file'
 import { usePatchCollabs } from '@services/task_collab'
 import { useQueryClient } from '@tanstack/react-query'
 import { errorMessageParser } from '@utils/error'
+import SendMsgForm from '@views/pages/home/SendMsgForm'
 import { useState } from 'react'
 import Icon from 'src/@core/components/icon'
 import CustomChip from 'src/@core/components/mui/chip'
@@ -39,13 +41,12 @@ function NotificationActionItems({ notificationAttachment }: { notificationAttac
 // ** Styled component for the subtitle in MenuItems
 
 function Notification({ notification }: any) {
-  // console.log(notification)
-
   const acceptPatchCollabs = usePatchCollabs()
   const rejectPatchCollabs = usePatchCollabs()
   const toast = useCustomToast()
   const queryClient = useQueryClient()
   const [collabActionResult, setCollabActionResult] = useState('')
+  const [replySend, setReplySend] = useState(false)
 
   const finalActions = {
     onError: (err: any) => {
@@ -193,6 +194,54 @@ function Notification({ notification }: any) {
             <img style={{ maxWidth: '100%' }} src='/images/success.gif' alt='approved' />
           </div>
         )}
+
+      {notification?.data?.notificationType === notificationTypes['task_comment'] && (
+        <>
+          {!replySend && (
+            <Box
+              sx={{
+                backgroundColor: 'rgba(168, 170, 174, 0.16)',
+                borderRadius: '8px',
+                p: '8px 12px !important',
+                my: '16px !important',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '1rem'
+              }}
+            >
+              <Typography
+                sx={{
+                  fontSize: '16px',
+                  color: '#55516b',
+                  fontWeight: '500',
+                  marginBottom: '4px'
+                }}
+              >
+                {`Latest Comment - ${notification?.data?.comment}`}
+              </Typography>
+
+              <SendMsgForm
+                setReplySend={setReplySend}
+                isInNotification={true}
+                selectedItem={notification?.data?.task}
+              />
+            </Box>
+          )}
+
+          {replySend && (
+            <p
+              style={{
+                fontSize: '15px',
+                color: `${'#7367F0'}`,
+                fontWeight: '500',
+                margin: '4px 0'
+              }}
+            >
+              Reply Send
+            </p>
+          )}
+        </>
+      )}
 
       <p style={{ fontSize: '11px', color: '#888888' }}>{notification.time}</p>
     </>
